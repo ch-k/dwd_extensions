@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<product_config>
+    <common>
+        
+        
+        <output_dir></output_dir>
+    <filename>{platform}{satnumber}_{channelname}_{projection}_{time:%y%m%d%H%M}.tif</filename>
+    </common>
+
+    
+     
+     <area>
+        
+        <name>europaTRIVIS4000m</name>
+        
+        <definition>europaTRIVIS4000m</definition>
+    
+        
+        <product>
+            <composite>dwdcomp_HRV</composite>
+            <name>dwdcomp_HRV</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>HRV_C</ninjo_product>
+        </product>
+        
+        <product>
+            <composite>dwdcomp_HRV</composite>
+            <name>dwdcomp_HRV</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>K</physical_unit>
+            <ninjo_product>HRV_K</ninjo_product>
+        </product>
+
+        <product>
+            <composite>dwdcomp_VIS006</composite>
+            <name>dwdcomp_VIS006</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>VIS006</ninjo_product>
+        </product>
+
+        <product>
+            <composite>dwdcomp_VIS008</composite>
+            <name>dwdcomp_VIS008</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>VIS008</ninjo_product>
+        </product>
+
+        <product>
+            <composite>dwdcomp_IR_108</composite>
+            <name>dwdcomp_IR_108</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_108</ninjo_product>
+        </product>
+      
+     </area>
+     <area>
+        
+        <name>europaTRIVIS1500m</name>
+        
+        <definition>europaTRIVIS1500m</definition>
+    
+        
+        <product>
+            <composite>dwdcomp_HRV</composite>
+            <name>dwdcomp_HRV</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>HRV</ninjo_product>
+        </product>    
+
+        <product>
+            <composite>dwdcomp_IR_108</composite>
+            <name>dwdcomp_IR_108</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_108</ninjo_product>
+        </product>
+      
+     </area>
+     <area>
+        
+        <name>erdscheibeTRIVIS0005km</name>
+        
+        <definition>erdscheibeTRIVIS0005km</definition>
+    
+        
+        <product>
+            <composite>dwdcomp_IR_108</composite>
+            <name>dwdcomp_IR_108</name>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_108</ninjo_product>
+        </product>
+      
+     </area>
+</product_config>
