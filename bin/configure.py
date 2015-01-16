@@ -19,12 +19,12 @@
 # THIS SOFTWARE OR ITS DERIVATIVES.
 
 import os
+import sys
+import argparse
 import ConfigParser
 import textwrap
 import traceback
 from xml.etree.ElementTree import ElementTree
-
-from sys import version_info
 
 
 def print_info():
@@ -40,6 +40,10 @@ def print_info():
     * (an empty value will leave the old one as it is).
     * It writes the key values to the key file.
     * It sets the values in the related config files.
+    *
+    * arguments:
+    * -p, --path <path to config files>
+    *
     *********************************************************************
     """)
 
@@ -60,7 +64,7 @@ def _get_config_file(configPath, keyFileName):
 def _ask_user(section, name, value):
     """Returns user input if there was one; otherwise the given old value.
     """
-    if version_info[0] > 2:
+    if sys.version_info[0] > 2:
         userValue = input("".join(["Please enter [", section, "] -> ", name, " (", value, "): "]))
     else:
         userValue = raw_input("".join(["Please enter [", section, "] -> ", name, " (", value, "): "]))
@@ -89,12 +93,23 @@ def set_xml_values(keyParser, configFileName):
 def main():
     """Sets the key values in the corresponding config files.
     """
-    print_info()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--path", dest="config_path", type=str,
+                        default='',
+                        help="put in the path to config files")
+    
+    if len(sys.argv) <= 1:
+        print_info()
+        sys.exit()
+    else:
+        args = parser.parse_args()
 
-    basePath = os.path.sep.join(os.path.dirname(os.path.realpath(__file__))
-                                .split(os.path.sep)[:-1])
-    keyPath = os.path.join(basePath, "keys")
-    configPath = os.path.join(basePath, "config")
+    configPath = args.config_path
+    if configPath == '':
+        print_info()
+        sys.exit()
+    
+    keyPath = os.path.join(configPath, "keys")
 
     for folder, subs, files in os.walk(keyPath):
         for f in files:
