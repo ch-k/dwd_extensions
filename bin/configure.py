@@ -19,6 +19,7 @@
 # THIS SOFTWARE OR ITS DERIVATIVES.
 
 import os
+import signal
 import sys
 import argparse
 import ConfigParser
@@ -161,3 +162,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # workaround to terminate python interpreter in interactive mode
+    pid = os.getpid()
+    os.kill(pid, signal.SIGTERM)
