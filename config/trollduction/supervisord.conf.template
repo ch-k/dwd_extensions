@@ -63,7 +63,10 @@ environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %NAMESERVERPATH% -v     
 ;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
 priority=1                  
-startsecs=3                 
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+                 
 
 [program:trollstalker]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
@@ -71,6 +74,8 @@ command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSEC
 ;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
 priority=2                  
 startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 [program:l2processor]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
@@ -78,6 +83,8 @@ command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECT
 ;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
 priority=3                  
 startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 [program:postprocessor]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
@@ -85,6 +92,8 @@ command=%PYTHONBIN% %POSTPROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSE
 ;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
 priority=4                  
 startsecs=3            
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 ; The below sample eventlistener section shows all possible
 ; eventlistener subsection values, create one or more 'real'
