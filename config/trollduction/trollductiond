@@ -15,7 +15,7 @@
 # Description:       Provides supervisord service
 ### END INIT INFO
 
-DAEMON=/usr/bin/supervisord
+DAEMON=%PYTHONBINDIR%supervisord
 # BASE=`basename $DAEMON`
 PIDFILE=/tmp/pytroll-supervisord.pid
 CONFIGFILE=%CONFIGDIR%/trollduction/supervisord.conf
