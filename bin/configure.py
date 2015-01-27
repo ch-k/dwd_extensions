@@ -88,7 +88,7 @@ def set_xml_values(keyParser, configFileName):
             keyParser.set(section, name, userValue)
             for elem in treeElement.findall(".//" + name):
                 elem.text = userValue
-    tree.write(configFileName, encoding="utf-8", xml_declaration="xml version='1.0' encoding='utf-8'")
+    tree.write(configFileName, encoding="utf-8")
     
     
 def main():
