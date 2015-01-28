@@ -3,11 +3,12 @@
 # /etc/init.d/trollductiond
 # Handles starting and stopping supervisord.
 #
-# Tested on OpenSUSE 12.1, SLES 11 SP2
+# Tested on SLES 11 SP3
 # Author: Gary Monson gary.monson@gmail.com
+# Author: Christian Kliche chk@ebp.de
 #
 ### BEGIN INIT INFO
-# Provides:          supervisord
+# Provides:          trollductiond
 # Required-Start:    $local_fs $remote_fs $network
 # Required-Stop:     $local_fs $remote_fs $network
 # Default-Start:     3 5
@@ -40,7 +41,23 @@ start() {
 
 stop() {
     echo "Shutting down supervisord:"
-    killproc -p $PIDFILE supervisord
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        ps -p $PID >/dev/null 2>&1
+        if [ "$?" = 0 ]; then
+            echo "supervisord running, stopping.."
+            kill -SIGTERM $PID
+            exit 0
+        else
+            echo "pidfile exists ($PID), but supervisord not running"
+            exit 2
+        fi
+        rm $PIDFILE
+    else
+        echo "supervisord not running"
+        exit 1
+    fi
+    #killproc -p $PIDFILE supervisord
     return 0
 }
 

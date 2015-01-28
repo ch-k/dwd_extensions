@@ -75,7 +75,7 @@ def _ask_user(section, name, value):
     else:
         return value
 
-def set_xml_values(keyParser, configFileName):
+def set_xml_values(keyParser, configFileName, non_interactive):
     """Sets the key values of keyParser in given xml config file.
     """
     tree = ElementTree()
@@ -84,7 +84,10 @@ def set_xml_values(keyParser, configFileName):
     for section in keyParser.sections():
         items = keyParser.items(section)
         for name, value in items:
-            userValue = _ask_user(section, name, value)
+            if non_interactive == True:
+                userValue = value
+            else:    
+                userValue = _ask_user(section, name, value)
             keyParser.set(section, name, userValue)
             for elem in treeElement.findall(".//" + name):
                 elem.text = userValue
@@ -98,6 +101,9 @@ def main():
     parser.add_argument("-p", "--path", dest="config_path", type=str,
                         default='',
                         help="put in the path to config files")
+    parser.add_argument("-ni", "--non-interactive", dest="non_interactive", 
+                       action='store_const', const=True, default=False,
+                        help="no user interaction, use default values")
     
     if len(sys.argv) <= 1:
         print_info()
@@ -136,7 +142,10 @@ def main():
                 for section in keyParser.sections():
                     items = keyParser.items(section)
                     for name, value in items:
-                        userValue = _ask_user(section, name, value)
+                        if args.non_interactive == True:
+                            userValue = value
+                        else:    
+                            userValue = _ask_user(section, name, value)
                         keyParser.set(section, name, userValue)
                         try:
                             confParser.set(section, name, userValue)
@@ -146,7 +155,7 @@ def main():
             except ConfigParser.MissingSectionHeaderError:
                 if configFileName.endswith("xml"):
                     print "".join(["reading files [", keyFileName, ", ", configFileName, "]"])
-                    set_xml_values(keyParser, configFileName)
+                    set_xml_values(keyParser, configFileName, args.non_interactive)
                     keyParser.write(keyFile)
                 hasFound = False
             except Exception, ex:
