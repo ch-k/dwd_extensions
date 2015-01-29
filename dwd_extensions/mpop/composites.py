@@ -279,18 +279,20 @@ def dwd_RGB_12_12_1_N(self):
     if day_mask is None:
         return None
     
-    ch1 = np.ma.where(day_mask, -self[10.8].data, self["HRV"].data)
-    ch2 = np.ma.where(day_mask, -self[10.8].data, self["HRV"].data)
-    ch3 = np.ma.where(day_mask, -self[10.8].data, self[0.635].data)
+    # scale each channel  to the required color range
+    hrv_data = self._dwd_get_scaled_data(self["HRV"].data, 0, 100)
+    vis006_data = self._dwd_get_scaled_data(self[0.635].data, 0, 100)
+    ir108_data = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40)
+    
+    ch1 = np.ma.where(day_mask, -ir108_data, hrv_data)
+    ch2 = np.ma.where(day_mask, -ir108_data, hrv_data)
+    ch3 = np.ma.where(day_mask, -ir108_data, ir108_data)
     
     img = geo_image.GeoImage((ch1, ch2, ch3),
                              self.area,
                              self.time_slot,
                              fill_value=(0, 0, 0),
-                             mode="RGB",
-                             crange=((0, 100),
-                                     (0, 100),
-                                     (0, 100)))
+                             mode="RGB")
     img.enhance(gamma=(1.3, 1.3, 1.3))
 
     return img
@@ -307,7 +309,7 @@ def dwd_RGB_12_12_9i_N(self):
     +--------------------+--------------------+--------------------+
     | HRVC               |   0.0 to 100.0 %   |        1.0         |
     +--------------------+--------------------+--------------------+
-    | IR108 (inverted)   |  323.0 to 203.0 K  |        1.0         |
+    | IR108              |  323.0 to 203.0 K  |        1.0         |
     +--------------------+--------------------+--------------------+ 
     night:
     +--------------------+--------------------+--------------------+
@@ -338,7 +340,7 @@ def dwd_RGB_12_12_9i_N(self):
     night_data2 = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40)
     night_data3 = self._dwd_get_scaled_data(self[12.0].data, -87.5, 40)
     
-    # create a temporary image to apply histrogram equalisation on each channel
+    # create a temporary image to apply histogram equalisation on each channel
     tmp_img = geo_image.GeoImage((-night_data1, -night_data2, -night_data3),
                                  self.area,
                                  self.time_slot,
@@ -349,7 +351,7 @@ def dwd_RGB_12_12_9i_N(self):
     # apply the mask on the input data
     ch_data1 = np.ma.where(day_mask, tmp_img.channels[0].data, hrvc_data)
     ch_data2 = np.ma.where(day_mask, tmp_img.channels[1].data, hrvc_data)
-    ch_data3 = np.ma.where(day_mask, tmp_img.channels[2].data, -ir108_data)
+    ch_data3 = np.ma.where(day_mask, tmp_img.channels[2].data, ir108_data)
     
     # create the image
     img = geo_image.GeoImage((ch_data1, ch_data2, ch_data3),
