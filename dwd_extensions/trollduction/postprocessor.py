@@ -42,8 +42,10 @@ import trollduction.helper_functions as helper_functions
 from trollsift import Parser
 from posttroll.publisher import NoisyPublisher
 from posttroll.message import Message
+from PIL import Image
 
-LOGGER = logging.getLogger(__name__)
+
+LOGGER = logging.getLogger("postprocessor")
 
 # Config watcher stuff
 
@@ -124,6 +126,60 @@ class ConfigWatcher(object):
         LOGGER.info("Stop watching %s", self.config_file)
         self.notifier.stop()
 
+
+def read_geotiff(filename):
+    from osgeo import gdal, osr
+    logger = LOGGER
+    
+    dst = gdal.Open(filename)
+
+    #
+    # Dataset information
+    #
+    geotransform = dst.GetGeoTransform()
+    projection = dst.GetProjection()
+    metadata = dst.GetMetadata()
+
+    logger.debug('description: %s'%dst.GetDescription())
+    logger.debug('driver: %s / %s'%(dst.GetDriver().ShortName,
+                                    dst.GetDriver().LongName))
+    logger.debug('size: %d x %d x %d'%(dst.RasterXSize, dst.RasterYSize,
+                                       dst.RasterCount))
+    logger.debug('geo transform: %s'%str(geotransform))
+    logger.debug('origin: %.3f, %.3f'%(geotransform[0], geotransform[3]))
+    logger.debug('pixel size: %.3f, %.3f'%(geotransform[1], geotransform[5]))
+    logger.debug('projection: %s'%projection)
+    logger.debug('metadata: %s', metadata)
+
+    #
+    # Fetching raster data
+    #
+    bands_data = []
+    for i in xrange(1,dst.RasterCount+1):
+        band = dst.GetRasterBand(i)
+        logger.info('Band(%d) type: %s, size %d x %d'%(i,
+                gdal.GetDataTypeName(band.DataType),
+                dst.RasterXSize, dst.RasterYSize))
+        shape = (dst.RasterYSize, dst.RasterXSize)
+        if band.GetOverviewCount() > 0:
+            logger.debug('overview count: %d'%band.GetOverviewCount())
+        if not band.GetRasterColorTable() is None:
+            logger.debug('colortable size: %d'%
+                         band.GetRasterColorTable().GetCount())
+    
+        data = band.ReadAsArray(0, 0, shape[1], shape[0])
+        logger.info('fetched array: %s %s %s [%d -> %.2f -> %d]'%
+                    (type(data), str(data.shape), data.dtype,
+                     data.min(), data.mean(), data.max()))
+        bands_data.append(data)
+
+    params = dict((('geotransform', geotransform),
+                   ('projection', projection),
+                   ('metadata', metadata)))
+
+    return params, bands_data
+
+
 class DataProcessor(object):
     """Process the data.
     """
@@ -138,12 +194,47 @@ class DataProcessor(object):
         """
         LOGGER.info('New data available: %s', msg.data['product_filename'])
 
+        t1a = time.time()
+
         self._data_ok = True
         self.product_config = product_config
-
-        t1a = time.time()
-                 #   self.writer.write(self.write_netcdf, 'local_data')
-      
+        self.out_boxes = dict((value['name'],value) for key, value in product_config['post_processing'].iteritems() if key == 'out_box')
+        self.rules = dict((value['input_pattern'],value) for key, value in product_config['post_processing'].iteritems() if key == 'rule')
+        
+        
+        
+        in_filename = msg.data['product_filename'] 
+        in_filename_base = os.path.basename(in_filename) 
+        for pattern, rule in self.rules.iteritems():
+            if fnmatch(in_filename_base, pattern):
+                LOGGER.info("Rule match (%s)" % rule)
+                
+                channels = []
+                params, bands_data = read_geotiff(in_filename)
+                for data in bands_data:
+                    arr = np.array(data)
+                    channels.append(np.ma.array(arr[:, :] / 255.0))
+                    
+                if len(channels) == 1:
+                    mode = "L"
+                else:
+                    mode = "RGB"
+                
+                import mpop.imageo.geo_image as geo_image
+                geo_img = geo_image.GeoImage(tuple(channels),
+                             msg.data['areaname'],
+                             msg.data['time'],
+                             fill_value=(0, 0, 0),
+                             mode=mode)
+                
+                name_params = dict((k,v) for k,v in msg.data.items())
+                fname = self.create_filename(rule['dest_filename'],
+                                        self.out_boxes[rule['out_box_ref']]['output_dir'],
+                                        name_params)
+                geo_img.save(fname, **self.get_save_arguments(rule))
+                #img = Image.open(in_filename)
+                #img.save("/home/pytroll/out.png")
+        
 
         LOGGER.info('pr %.1f s', (time.time()-t1a))
 
@@ -161,6 +252,27 @@ class DataProcessor(object):
             LOGGER.warning("File %s not processed due to " \
                            "incomplete/missing/corrupted data." % \
                            msg.data['product_filename'])
+            
+    def get_save_arguments(self, rule):
+        save_kwords = {}
+        
+        # check if a certain format is specified
+        if 'format' in rule:
+            save_kwords['fformat'] = rule['format']
+             
+        # check if a special physical unit is required   
+        if 'physical_unit' in rule:
+            save_kwords['physic_unit'] = rule['physical_unit']
+                
+        # check if a specific ninjo product name is given
+        if 'ninjo_product' in rule:
+            save_kwords['ninjo_product_name'] = rule['ninjo_product']
+            
+        # check if there is a satid is defined
+        if 'sat_id' in rule:
+            save_kwords['sat_id'] = rule['sat_id']
+
+        return save_kwords
 
     def create_info_dict(self, area=None, product=None):
         '''create info dictionary.  Parameter *area* is for area-level
@@ -199,43 +311,12 @@ class DataProcessor(object):
         return info_dict
 
     
-    def parse_filename(self, area=None, product=None, fname_key='filename'):
-        '''Parse filename for saving.  Parameter *area* is for area-level
-        configuration dictionary, *product* for product-level
-        configuration dictionary.  Parameter *fname_key* tells which
-        dictionary key holds the filename pattern.
+    def create_filename(self, fname_pattern, dir_pattern, params=None):
+        '''Parse filename for saving.
         '''
-        try:
-            out_dir = product['output_dir']
-        except (KeyError, TypeError):
-            try:
-                out_dir = area['output_dir']
-            except (KeyError, TypeError):
-                out_dir = self.product_config['common']['output_dir']
-
-        try:
-            fname = product[fname_key]
-        except (KeyError, TypeError):
-            try:
-                fname = area[fname_key]
-            except (KeyError, TypeError):
-                fname = self.product_config['common'][fname_key]
-
-        fname = os.path.join(out_dir, fname)
-
+        fname = os.path.join(dir_pattern, fname_pattern)
         par = Parser(fname)
-        try:
-            time_slot = self.local_data.time_slot
-        except AttributeError:
-            time_slot = self.global_data.time_slot
-
-
-        info_dict = self.create_info_dict(area, product)
-       
-        info_dict['file_ending'] = 'png'
-
-        fname = par.compose(info_dict)
-
+        fname = par.compose(params)
         return fname
 
 

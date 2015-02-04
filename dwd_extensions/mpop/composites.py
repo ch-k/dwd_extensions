@@ -114,13 +114,24 @@ def _dwd_calculate_sun_zenith_angles(self):
         data.__getattribute__("sun_zen")
     except AttributeError:
         LOGGER.debug("Calculating Sun zenith angles for _data_holder")
-        data.sun_zen = sza(data.time_slot, data.area.lons, data.area.lats)
+        data.sun_zen = np.zeros(shape=data.area.lons.shape)
+        q = 500
+        for start in xrange(0, data.sun_zen.shape[1], q):
+            data.sun_zen[:,start:start+q] = sza(data.time_slot, 
+                                                data.area.lons[:,start:start+q], 
+                                                data.area.lats[:,start:start+q])
+    
+        #data.sun_zen = sza(data.time_slot, data.area.lons, data.area.lats)
     return True
 
 def _dwd_get_day_mask(self):
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
-        return np.ma.masked_outside(data, 0.0, 85.0).mask
+        m = np.ma.masked_outside(data, 0.0, 85.0).mask
+        if m == False:
+            # workround to avoid shrinking of mask
+            m = np.zeros(data.shape, dtype=bool)
+        return m
     else:
         return None
 
