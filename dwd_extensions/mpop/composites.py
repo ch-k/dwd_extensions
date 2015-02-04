@@ -66,6 +66,7 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
     """
     if self._is_solar_channel(chn) and \
     self[chn].info.get("sun_zen_corrected", None) is None:
+        self[chn].data = None
         self[chn].data = self[chn].sunzen_corr(self.time_slot, limit=85.).data
 
 def _dwd_kelvin_to_celsius(self, chn):
@@ -120,6 +121,13 @@ def _dwd_get_day_mask(self):
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
         return np.ma.masked_outside(data, 0.0, 85.0).mask
+    else:
+        return None
+
+def _dwd_get_night_mask(self):
+    if self._dwd_calculate_sun_zenith_angles():
+        data = getattr(self, "_data_holder").__getattribute__("sun_zen")
+        return np.ma.masked_inside(data, 0.0, 87.0).mask
     else:
         return None
 
@@ -275,18 +283,24 @@ def dwd_RGB_12_12_1_N(self):
     if not self._dwd_channel_preparation(0.635, "HRV", 10.8):
         return None
     
-    day_mask = self._dwd_get_day_mask()
-    if day_mask is None:
-        return None
-    
     # scale each channel  to the required color range
     hrv_data = self._dwd_get_scaled_data(self["HRV"].data, 0, 100)
     vis006_data = self._dwd_get_scaled_data(self[0.635].data, 0, 100)
     ir108_data = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40)
     
+    night_mask = self._dwd_get_night_mask()
+    if night_mask is None:
+        LOGGER.error("creating night mask failed")
+        return None
+    
+    day_mask = self._dwd_get_day_mask()
+    if day_mask is None:
+        LOGGER.error("creating day mask failed")
+        return None
+    
     ch1 = np.ma.where(day_mask, -ir108_data, hrv_data)
     ch2 = np.ma.where(day_mask, -ir108_data, hrv_data)
-    ch3 = np.ma.where(day_mask, -ir108_data, ir108_data)
+    ch3 = np.ma.where(day_mask, -ir108_data, vis006_data)
     
     img = geo_image.GeoImage((ch1, ch2, ch3),
                              self.area,
@@ -426,8 +440,8 @@ dwd_ninjo_HRV.prerequisites = set(['HRV'])
    
 seviri = [_is_solar_channel, _dwd_kelvin_to_celsius, _dwd_apply_sun_zenith_angle_correction,
           _dwd_channel_preparation, _dwd_create_single_channel_image,
-          _dwd_calculate_sun_zenith_angles, _dwd_get_day_mask, _dwd_get_hrvc,
-          _dwd_get_scaled_data,
+          _dwd_calculate_sun_zenith_angles, _dwd_get_day_mask, _dwd_get_night_mask,
+          _dwd_get_hrvc, _dwd_get_scaled_data,
           dwd_ninjo_VIS006, dwd_ninjo_VIS008, dwd_ninjo_IR_016, dwd_ninjo_IR_039,
           dwd_ninjo_WV_062, dwd_ninjo_WV_073, dwd_ninjo_IR_087, dwd_ninjo_IR_097,
           dwd_ninjo_IR_108, dwd_ninjo_IR_120, dwd_ninjo_IR_134, dwd_ninjo_HRV,
