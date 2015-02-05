@@ -66,7 +66,6 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
     """
     if self._is_solar_channel(chn) and \
     self[chn].info.get("sun_zen_corrected", None) is None:
-        self[chn].data = None
         self[chn].data = self[chn].sunzen_corr(self.time_slot, limit=85.).data
 
 def _dwd_kelvin_to_celsius(self, chn):
@@ -106,13 +105,13 @@ def _dwd_calculate_sun_zenith_angles(self):
         LOGGER.error("No such data: _data_holder")
         return False
 
-    if data.area.lons is None:
-        LOGGER.debug("Load coordinates for _data_holder")
-        data.area.lons, data.area.lats = data.area.get_lonlats()
-
     try:
         data.__getattribute__("sun_zen")
     except AttributeError:
+        if data.area.lons is None:
+            LOGGER.debug("Load coordinates for _data_holder")
+            data.area.lons, data.area.lats = data.area.get_lonlats()
+
         LOGGER.debug("Calculating Sun zenith angles for _data_holder")
         data.sun_zen = np.zeros(shape=data.area.lons.shape)
         q = 500
@@ -127,18 +126,14 @@ def _dwd_calculate_sun_zenith_angles(self):
 def _dwd_get_day_mask(self):
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
-        m = np.ma.masked_outside(data, 0.0, 85.0).mask
-        if m == False:
-            # workround to avoid shrinking of mask
-            m = np.zeros(data.shape, dtype=bool)
-        return m
+        return np.ma.getmaskarray(np.ma.masked_outside(data, 0.0, 85.0))
     else:
         return None
 
 def _dwd_get_night_mask(self):
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
-        return np.ma.masked_inside(data, 0.0, 87.0).mask
+        return np.ma.getmaskarray(np.ma.masked_inside(data, 0.0, 87.0))
     else:
         return None
 
@@ -156,9 +151,18 @@ def _dwd_get_hrvc(self):
     
     return hrvc_chn
 
-def _dwd_get_scaled_data(self, data, color_min, color_max):
+def _dwd_get_scaled_data(self, data, color_min, color_max, inverse=False):
     """Scales the given data to the specified color range.
     """
+    if color_min == color_max:
+        raise Exception("Scaling of data failed due to " + color_min +
+                        " == " + color_max)
+    
+    if color_min > color_max:
+        temp = color_min
+        color_min = color_max
+        color_max = temp
+        
     if isinstance(data, np.ma.core.MaskedArray):
         data_data = data.data
         data_mask = data.mask
@@ -166,8 +170,12 @@ def _dwd_get_scaled_data(self, data, color_min, color_max):
         data_data = np.array(data)
         data_mask = False
         
-    scaled = ((data_data - color_min) *
-              1.0 / (color_max - color_min))
+    if inverse:
+        scaled = (1.0 - ((data_data - color_min) *
+                  1.0 / (color_max - color_min)))
+    else:
+        scaled = ((data_data - color_min) *
+                  1.0 / (color_max - color_min))
     
     return np.ma.array(scaled, mask=data_mask)
 
@@ -294,14 +302,13 @@ def dwd_RGB_12_12_1_N(self):
     if not self._dwd_channel_preparation(0.635, "HRV", 10.8):
         return None
     
-    # scale each channel  to the required color range
-    hrv_data = self._dwd_get_scaled_data(self["HRV"].data, 0, 100)
-    vis006_data = self._dwd_get_scaled_data(self[0.635].data, 0, 100)
-    ir108_data = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40)
-    
-    night_mask = self._dwd_get_night_mask()
-    if night_mask is None:
-        LOGGER.error("creating night mask failed")
+    # scale each channel to the required color range
+    try:
+        hrv_data = self._dwd_get_scaled_data(self["HRV"].data, 0, 100)
+        vis006_data = self._dwd_get_scaled_data(self[0.635].data, 0, 100)
+        ir108_data_inv = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40, inverse=True)
+    except Exception as ex:
+        LOGGER.error(str(ex))
         return None
     
     day_mask = self._dwd_get_day_mask()
@@ -309,11 +316,10 @@ def dwd_RGB_12_12_1_N(self):
         LOGGER.error("creating day mask failed")
         return None
     
-    ch1 = np.ma.where(day_mask, -ir108_data, hrv_data)
-    ch2 = np.ma.where(day_mask, -ir108_data, hrv_data)
-    ch3 = np.ma.where(day_mask, -ir108_data, vis006_data)
+    ch1 = np.ma.where(day_mask, ir108_data_inv, hrv_data)
+    ch2 = np.ma.where(day_mask, ir108_data_inv, vis006_data)
     
-    img = geo_image.GeoImage((ch1, ch2, ch3),
+    img = geo_image.GeoImage((ch1, ch1, ch2),
                              self.area,
                              self.time_slot,
                              fill_value=(0, 0, 0),
@@ -358,19 +364,23 @@ def dwd_RGB_12_12_9i_N(self):
      
     hrvc_chn = self._dwd_get_hrvc()
     
-    # scale each channel  to the required color range
-    hrvc_data = self._dwd_get_scaled_data(hrvc_chn.data, 0, 100)
-    ir108_data = self._dwd_get_scaled_data(self[10.8].data, 203 - CONVERSION, 323 - CONVERSION)
-    night_data1 = self._dwd_get_scaled_data(self[3.75].data, -87.5, 40)
-    night_data2 = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40)
-    night_data3 = self._dwd_get_scaled_data(self[12.0].data, -87.5, 40)
+    # scale each channel to the required color range
+    try:
+        hrvc_data = self._dwd_get_scaled_data(hrvc_chn.data, 0, 100)
+        ir108_data = self._dwd_get_scaled_data(self[10.8].data, 203 - CONVERSION, 323 - CONVERSION)
+        night_data1_inv = self._dwd_get_scaled_data(self[3.75].data, -87.5, 40, inverse=True)
+        night_data2_inv = self._dwd_get_scaled_data(self[10.8].data, -87.5, 40, inverse=True)
+        night_data3_inv = self._dwd_get_scaled_data(self[12.0].data, -87.5, 40, inverse=True)
+    except Exception as ex:
+        LOGGER.error(str(ex))
+        return None       
     
     # create a temporary image to apply histogram equalisation on each channel
-    tmp_img = geo_image.GeoImage((-night_data1, -night_data2, -night_data3),
+    tmp_img = geo_image.GeoImage((night_data1_inv, night_data2_inv, night_data3_inv),
                                  self.area,
                                  self.time_slot,
-                                 mode="RGB",
-                                 fill_value=(0, 0, 0))
+                                 fill_value=(0, 0, 0),
+                                 mode="RGB")
     tmp_img.enhance(stretch = "histogram")
     
     # apply the mask on the input data
