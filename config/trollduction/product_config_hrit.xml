@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <product_config>
     <common>
-        <output_dir>/home/ninjo-dev/pytroll-out/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
+        <output_dir id="common_output_dir">/home/ninjo-dev/pytroll-out/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
         <filename>{platform}{satnumber}_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</filename>
     </common>
     <area>
@@ -10,9 +10,6 @@
         <product>
             <composite>dwd_ninjo_HRV</composite>
             <name>HRV</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>%</physical_unit>
-            <ninjo_product>HRV</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
     </area>
@@ -22,89 +19,56 @@
         <product>
             <composite>dwd_ninjo_VIS006</composite>
             <name>VIS006</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>%</physical_unit>
-            <ninjo_product>VIS006</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_VIS008</composite>
             <name>VIS008</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>%</physical_unit>
-            <ninjo_product>VIS008</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_VIS008_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_016</composite>
             <name>IR_016</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>%</physical_unit>
-            <ninjo_product>IR_016</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_039</composite>
             <name>IR_039</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_039</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_WV_062</composite>
             <name>WV_062</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>WV_062</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_WV_073</composite>
             <name>WV_073</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>WV_073</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_WV073_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_087</composite>
             <name>IR_087</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_087</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR087_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_097</composite>
             <name>IR_097</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_097</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR097_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_108</composite>
             <name>IR_108</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_108</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_120</composite>
             <name>IR_120</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_120</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR120_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>  
         <product>
             <composite>dwd_ninjo_IR_134</composite>
             <name>IR_134</name>
-            <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>C</physical_unit>
-            <ninjo_product>IR_134</ninjo_product>
             <filename>METEOSAT_AFRIKA_EUROPA_IR134_nq0003km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
     </area>
@@ -368,4 +332,131 @@
             <filename>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
     </area>
+
+	<post_processing>
+	
+		<out_box>
+			<name>ninjo</name>
+			<output_dir id="out_box_dir_ninjo">/home/pytroll/outboxes/ninjo/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
+		</out_box>
+		<out_box>
+			<name>browser</name>
+			<output_dir id="out_box_dir_browser">/home/pytroll/outboxes/browser/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
+		</out_box>
+		
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time:%Y%m%d%H%M}.tif</dest_filename>
+			<format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>%</physical_unit>
+            <ninjo_product>HRV</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+			<format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>%</physical_unit>
+            <ninjo_product>VIS006</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_VIS008_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_VIS008_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+			<format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>%</physical_unit>
+            <ninjo_product>VIS008</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+			<format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>%</physical_unit>
+            <ninjo_product>IR_016</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_039</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_039</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>WV_062</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_WV073_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_WV073_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>WV_073</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR087_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR087_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_087</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR097_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR097_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_097</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_108</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR120_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR120_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_120</ninjo_product>
+		</rule>
+		<rule>
+			<input_pattern>METEOSAT_AFRIKA_EUROPA_IR134_nq0003km_*.*</input_pattern>
+			<out_box_ref>ninjo</out_box_ref>
+			<dest_filename>METEOSAT_AFRIKA_EUROPA_IR134_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <physical_unit>C</physical_unit>
+            <ninjo_product>IR_134</ninjo_product>
+		</rule>
+
+
+		<rule>
+			<input_pattern>*.*</input_pattern>
+			<dest_filename>{platform}{satnumber}_{composite}_{areaname}_ql_{time:%Y%m%d%H%M}.gif
+			</dest_filename>
+			<out_box_ref>browser</out_box_ref>
+			<layout>quicklook</layout>
+		</rule>
+	</post_processing>
+    
 </product_config>

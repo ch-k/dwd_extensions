@@ -188,7 +188,44 @@ class DataProcessor(object):
         self._data_ok = True
         self.writer = DataWriter()
         self.writer.start()
+        
+    def set_config(self, product_config):
+        self.product_config = product_config
+        self.out_boxes = dict()
+        self.rules = dict()
+        for key, values in product_config['post_processing'].iteritems():
+            for value in values: 
+                if key == 'out_box':
+                    self.out_boxes[value['name']] = value
+                elif key == 'rule':
+                    self.rules[value['input_pattern']] = value
+                    
 
+    def read_image(self, filename, area, timeslot):
+        channels = []
+        params, bands_data = read_geotiff(filename)
+        for data in bands_data:
+            arr = np.array(data)
+            channels.append(np.ma.array(arr[:, :] / 255.0))
+            
+        if len(channels) == 1:
+            mode = "L"
+            fill_value=(0)
+        else:
+            mode = "RGB"
+            fill_value=(0, 0, 0)
+        
+        import mpop.imageo.geo_image as geo_image
+        geo_img = geo_image.GeoImage(tuple(channels),
+                     area,
+                     timeslot,
+                     fill_value=fill_value,
+                     mode=mode)
+        return geo_img
+
+    def save_img(self, geo_img, fname, **kwargs):
+        geo_img.save(fname, **kwargs)
+        
     def run(self, product_config, msg):
         """Process the data
         """
@@ -197,44 +234,35 @@ class DataProcessor(object):
         t1a = time.time()
 
         self._data_ok = True
-        self.product_config = product_config
-        self.out_boxes = dict((value['name'],value) for key, value in product_config['post_processing'].iteritems() if key == 'out_box')
-        self.rules = dict((value['input_pattern'],value) for key, value in product_config['post_processing'].iteritems() if key == 'rule')
-        
-        
+        self.set_config(product_config)
         
         in_filename = msg.data['product_filename'] 
-        in_filename_base = os.path.basename(in_filename) 
+        in_filename_base = os.path.basename(in_filename)
+        rules_to_apply = []
+        
+        # find matching rules 
         for pattern, rule in self.rules.iteritems():
             if fnmatch(in_filename_base, pattern):
                 LOGGER.info("Rule match (%s)" % rule)
-                
-                channels = []
-                params, bands_data = read_geotiff(in_filename)
-                for data in bands_data:
-                    arr = np.array(data)
-                    channels.append(np.ma.array(arr[:, :] / 255.0))
-                    
-                if len(channels) == 1:
-                    mode = "L"
-                else:
-                    mode = "RGB"
-                
-                import mpop.imageo.geo_image as geo_image
-                geo_img = geo_image.GeoImage(tuple(channels),
-                             msg.data['areaname'],
-                             msg.data['time'],
-                             fill_value=(0, 0, 0),
-                             mode=mode)
-                
-                name_params = dict((k,v) for k,v in msg.data.items())
-                fname = self.create_filename(rule['dest_filename'],
-                                        self.out_boxes[rule['out_box_ref']]['output_dir'],
-                                        name_params)
-                geo_img.save(fname, **self.get_save_arguments(rule))
-                #img = Image.open(in_filename)
-                #img.save("/home/pytroll/out.png")
+                rules_to_apply.append(rule)
         
+        if len(rules_to_apply) > 0:
+                # load image
+                area = get_area_def(msg.data['areaname'])
+                geo_img = self.read_image(in_filename, area, msg.data['time'])
+                name_params = dict((k,v) for k,v in msg.data.items())
+                
+                # and apply each rule
+                for rule in rules_to_apply:
+                    box_out_dir = self.out_boxes[rule['out_box_ref']]\
+                    ['output_dir']
+                    fname = self.create_filename(rule['dest_filename'],
+                                                 box_out_dir,
+                                                 name_params)
+                    self.writer.write(self.save_img, 
+                                  geo_img, 
+                                  fname, 
+                                  **self.get_save_arguments(rule))
 
         LOGGER.info('pr %.1f s', (time.time()-t1a))
 

@@ -89,7 +89,8 @@ def set_xml_values(keyParser, configFileName, non_interactive):
             else:    
                 userValue = _ask_user(section, name, value)
             keyParser.set(section, name, userValue)
-            for elem in treeElement.findall(".//" + name):
+            #for elem in treeElement.findall(".//" + name):
+            for elem in treeElement.findall(".//*[@id='%s']" % name):
                 elem.text = userValue
     tree.write(configFileName, encoding="utf-8")
     
