@@ -162,7 +162,7 @@ def _dwd_get_alpha_channel(self):
     """
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
-        alpha = np.zeros(data.shape, dtype=np.int)
+        alpha = np.ma.zeros(data.shape, dtype=np.int)
         y, x = np.where((data <= SUN_ZEN_NIGHT_LIMIT) & (data >= SUN_ZEN_DAY_LIMIT))
         alpha[y, x] = ((data[y, x] - SUN_ZEN_DAY_LIMIT)/(SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT))*(254-1)+1
         alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] = 255
@@ -339,15 +339,22 @@ def dwd_RGB_12_12_1_N(self):
     
     if type == IMAGETYPES.DAY_NIGHT:
         alpha = self._dwd_get_alpha_channel()
-        # create day image 
-        day_img = self._dwd_create_RGB_image((self["HRV"].data, self["HRV"].data, self[0.635].data, alpha),
+        # copy data and reset masks to allow correct blending calculation 
+        hrv_data = self["HRV"].data.copy()
+        hrv_data.mask = False
+        vis_data = self[0.635].data.copy()
+        vis_data.mask = False
+        ir108_data = self[10.8].data.copy()
+        ir108_data.mask = False
+        # create day image
+        day_img = self._dwd_create_RGB_image((hrv_data, hrv_data, vis_data, alpha),
                                              ((0, 100),
                                               (0, 100),
                                               (0, 100),
                                               (0, 255)))
         day_img.enhance(gamma=(1.3, 1.3, 1.3, 1.0), inverse=(False, False, False, True))
         # create night image 
-        night_img = self._dwd_create_RGB_image((self[10.8].data, self[10.8].data, self[10.8].data, alpha),
+        night_img = self._dwd_create_RGB_image((ir108_data, ir108_data, ir108_data, alpha),
                                                ((-87.5, 40),
                                                 (-87.5, 40),
                                                 (-87.5, 40),
@@ -415,15 +422,24 @@ def dwd_RGB_12_12_9i_N(self):
     
     if type == IMAGETYPES.DAY_NIGHT:
         alpha = self._dwd_get_alpha_channel()
+        # copy data and reset masks to allow correct blending calculation 
+        hrvc_data = hrvc_chn.data.copy()
+        hrvc_data.mask = False
+        ir108_data = self[10.8].data.copy()
+        ir108_data.mask = False
+        ir039_data = self[3.75].data.copy()
+        ir039_data.mask = False
+        ir120_data = self[12.0].data.copy()
+        ir120_data.mask = False
         # create day image 
-        day_img = self._dwd_create_RGB_image((hrvc_chn.data, hrvc_chn.data, self[10.8].data, alpha),
+        day_img = self._dwd_create_RGB_image((hrvc_data, hrvc_data, ir108_data, alpha),
                                              ((0, 100),
                                               (0, 100),
                                               (203 - CONVERSION, 323 - CONVERSION),
                                               (0, 255)))
         day_img.enhance(inverse=(False, False, False, True))
         # create night image
-        night_img = self._dwd_create_RGB_image((self[3.75].data, self[10.8].data, self[12.0].data, alpha),
+        night_img = self._dwd_create_RGB_image((ir039_data, ir108_data, ir120_data, alpha),
                                                ((-87.5, 40),
                                                 (-87.5, 40),
                                                 (-87.5, 40),
