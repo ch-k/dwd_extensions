@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright (c) 2015
-# 
+#
 # Author(s):
-# 
+#
 #   Panu Lahtinen <panu.lahtinen@fmi.fi>
 #   Martin Raspaud <martin.raspaud@smhi.se>
 #   Christian Kliche <chk@ebp.de>
-# 
-# 
+#
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -27,25 +27,18 @@
 '''
 
 from trollduction.listener import ListenerContainer
-from mpop.satellites import GenericFactory as GF
+import mpop.imageo.geo_image as geo_image
 import time
 from mpop.projector import get_area_def
-import sys
 from threading import Thread
-from pyorbital import astronomy
 import numpy as np
 import os
 import Queue
 import logging
-import logging.handlers
 from fnmatch import fnmatch
 import re
 import trollduction.helper_functions as helper_functions
 from trollsift import Parser
-from posttroll.publisher import NoisyPublisher
-from posttroll.message import Message
-from PIL import Image
-
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -55,7 +48,9 @@ import pyinotify
 
 # Generic event handler
 
+
 class EventHandler(pyinotify.ProcessEvent):
+
     """Handle events with a generic *fun* function.
     """
 
@@ -92,28 +87,27 @@ class EventHandler(pyinotify.ProcessEvent):
         """
         self.process_file(event.pathname)
 
+
 class ConfigWatcher(object):
+
     """Watch a given config file and run reload_config.
     """
 
     def __init__(self, config_file, config_item, reload_config):
         mask = (pyinotify.IN_CLOSE_WRITE |
-            pyinotify.IN_MOVED_TO |
-            pyinotify.IN_CREATE)
+                pyinotify.IN_MOVED_TO |
+                pyinotify.IN_CREATE)
         self.config_file = config_file
         self.config_item = config_item
         self.watchman = pyinotify.WatchManager()
 
         LOGGER.debug("Setting up watcher for %s", config_file)
 
-        self.notifier = \
-            pyinotify.ThreadedNotifier(self.watchman,
-                                       EventHandler(reload_config,
-                                                    os.path.basename(config_file
-                                                                     ),
-                                                    self.config_item
-                                                    )
-                                       )
+        self.notifier = pyinotify.ThreadedNotifier(
+            self.watchman,
+            EventHandler(
+                reload_config, os.path.basename(config_file),
+                self.config_item))
         self.watchman.add_watch(os.path.dirname(config_file), mask)
 
     def start(self):
@@ -131,14 +125,15 @@ class ConfigWatcher(object):
 
 def read_tiff_with_gdal(filename):
     """ read (geo)tiff via gdal
-        unfortunatly it does not work after ninjotiff module was loaded 
+        unfortunatly it does not work after ninjotiff module was loaded
     """
-   # saver = __import__('mpop.imageo.formats.ninjotiff', globals(), locals(), ['save'])
-    from osgeo import gdal, osr
+    # saver = __
+    # import__('mpop.imageo.formats.ninjotiff', globals(), locals(), ['save'])
+    from osgeo import gdal
     logger = LOGGER
-    
+
     dst = gdal.Open(filename, gdal.GA_ReadOnly)
-    
+
     #
     # Dataset information
     #
@@ -146,116 +141,119 @@ def read_tiff_with_gdal(filename):
     projection = dst.GetProjection()
     metadata = dst.GetMetadata()
 
-    logger.debug('description: %s'%dst.GetDescription())
-    logger.debug('driver: %s / %s'%(dst.GetDriver().ShortName,
-                                    dst.GetDriver().LongName))
-    logger.debug('size: %d x %d x %d'%(dst.RasterXSize, dst.RasterYSize,
-                                       dst.RasterCount))
-    logger.debug('geo transform: %s'%str(geotransform))
-    logger.debug('origin: %.3f, %.3f'%(geotransform[0], geotransform[3]))
-    logger.debug('pixel size: %.3f, %.3f'%(geotransform[1], geotransform[5]))
-    logger.debug('projection: %s'%projection)
+    logger.debug('description: %s' % dst.GetDescription())
+    logger.debug('driver: %s / %s' % (dst.GetDriver().ShortName,
+                                      dst.GetDriver().LongName))
+    logger.debug('size: %d x %d x %d' % (dst.RasterXSize, dst.RasterYSize,
+                                         dst.RasterCount))
+    logger.debug('geo transform: %s' % str(geotransform))
+    logger.debug('origin: %.3f, %.3f' % (geotransform[0], geotransform[3]))
+    logger.debug('pixel size: %.3f, %.3f' % (geotransform[1], geotransform[5]))
+    logger.debug('projection: %s' % projection)
     logger.debug('metadata: %s', metadata)
 
     #
     # Fetching raster data
     #
     bands_data = []
-    for i in xrange(1,dst.RasterCount+1):
+    for i in xrange(1, dst.RasterCount + 1):
         band = dst.GetRasterBand(i)
-        logger.info('Band(%d) type: %s, size %d x %d'%(i,
-                gdal.GetDataTypeName(band.DataType),
-                dst.RasterXSize, dst.RasterYSize))
+        logger.info(
+            'Band(%d) type: %s, size %d x %d' %
+            (i, gdal.GetDataTypeName(band.DataType),
+             dst.RasterXSize, dst.RasterYSize))
         shape = (dst.RasterYSize, dst.RasterXSize)
         if band.GetOverviewCount() > 0:
-            logger.debug('overview count: %d'%band.GetOverviewCount())
+            logger.debug('overview count: %d' % band.GetOverviewCount())
         if not band.GetRasterColorTable() is None:
-            logger.debug('colortable size: %d'%
+            logger.debug('colortable size: %d' %
                          band.GetRasterColorTable().GetCount())
-    
+
         data = band.ReadAsArray(0, 0, shape[1], shape[0])
-        logger.info('fetched array: %s %s %s [%d -> %.2f -> %d]'%
+        logger.info('fetched array: %s %s %s [%d -> %.2f -> %d]' %
                     (type(data), str(data.shape), data.dtype,
                      data.min(), data.mean(), data.max()))
         bands_data.append(data)
 
-    params = dict((('geotransform', geotransform),
-                   ('projection', projection),
-                   ('metadata', metadata)))
+    # params = dict((('geotransform', geotransform),
+    #                ('projection', projection),
+    #                ('metadata', metadata)))
 
     dst = None
-    
+
     channels = []
     for data in bands_data:
-        arr = np.array(data)
-        channels.append(np.ma.array(arr[:, :] / 255.0))
-        
+        arr = np.array(data)  # @UndefinedVariable
+        channels.append(np.ma.array(arr[:, :] / 255.0))  # @UndefinedVariable
+
     return channels
+
 
 def read_tiff_with_pil(filename):
     """ read tiff via PIL
-        workaround function to replace 'read_tiff_with_gdal' until 
-        issues with ninjotiff module have been resolved 
+        workaround function to replace 'read_tiff_with_gdal' until
+        issues with ninjotiff module have been resolved
     """
-    #import mpop.imageo.formats.ninjotiff as ninjotiff
-    #for inf in ninjotiff.info(filename):
+    # import mpop.imageo.formats.ninjotiff as ninjotiff
+    # for inf in ninjotiff.info(filename):
     #    print inf, '\n'
-    
+
     from PIL import Image
     im = Image.open(filename)
-    arr = np.array(im)
+    arr = np.array(im)  # @UndefinedVariable
     channels = []
     if len(arr.shape) == 2:
-        channels.append(np.ma.array(arr[:, :] / 255.0))
+        channels.append(np.ma.array(arr[:, :] / 255.0))  # @UndefinedVariable
     else:
-        for i in range(0,arr.shape[2]):
-            channels.append(np.ma.array(arr[:, :, i] / 255.0))
+        for i in range(0, arr.shape[2]):
+            channels.append(
+                np.ma.array(arr[:, :, i] / 255.0))  # @UndefinedVariable
     return channels
 
 
 class DataProcessor(object):
+
     """Process the data.
     """
+
     def __init__(self):
         self.product_config = None
         self._data_ok = True
         self.writer = DataWriter()
         self.writer.start()
-        
+
     def set_config(self, product_config):
         self.product_config = product_config
         self.out_boxes = dict()
         self.rules = []
         for key, values in product_config['post_processing'].iteritems():
-            for value in values: 
+            for value in values:
                 if key == 'out_box':
                     self.out_boxes[value['name']] = value
                 elif key == 'rule':
                     self.rules.append(value)
-                    
 
     def read_image(self, filename, area, timeslot):
-        #channels_gdal = read_tiff_with_gdal(filename)
+        # channels_gdal = read_tiff_with_gdal(filename)
         channels = read_tiff_with_pil(filename)
-            
+
         if len(channels) == 1:
             mode = "L"
-            fill_value=(0)
+            fill_value = (0)
         else:
             mode = "RGB"
-            fill_value=(0, 0, 0)
-        
-        import mpop.imageo.geo_image as geo_image
+            fill_value = (0, 0, 0)
+
         geo_img = geo_image.GeoImage(tuple(channels),
-                     area,
-                     timeslot,
-                     fill_value=fill_value,
-                     mode=mode)
+                                     area,
+                                     timeslot,
+                                     fill_value=fill_value,
+                                     mode=mode)
         return geo_img
 
     def save_img(self, geo_img, fname, **kwargs):
         geo_img.save(fname, **kwargs)
-        
+
     def run(self, product_config, msg):
         """Process the data
         """
@@ -263,53 +261,51 @@ class DataProcessor(object):
 
         self._data_ok = True
         self.set_config(product_config)
-        
-        in_filename = msg.data['product_filename'] 
+
+        in_filename = msg.data['product_filename']
         in_filename_base = os.path.basename(in_filename)
         rules_to_apply = []
         rules_to_apply_groups = set()
-        # find matching rules 
+        # find matching rules
         for rule in self.rules:
             pattern = rule['input_pattern']
             if re.match(pattern, in_filename_base):
-            #if fnmatch(in_filename_base, pattern):
+                # if fnmatch(in_filename_base, pattern):
                 if 'rule_group' in rule:
                     rg = rule['rule_group']
                     if rg in rules_to_apply_groups:
                         continue
                     else:
                         rules_to_apply_groups.add(rg)
-                        
+
                 LOGGER.info("Rule match (%s)" % rule)
                 rules_to_apply.append(rule)
-        
+
         if len(rules_to_apply) > 0:
             t1a = time.time()
-            
+
             # load image
             area = get_area_def(msg.data['areaname'])
             geo_img = self.read_image(in_filename, area, msg.data['time'])
-        
+
             # and apply each rule
             for rule in rules_to_apply:
                 params = self.merge_and_resolve_parameters(msg,
                                                            rule)
-                
-                box_out_dir = self.out_boxes[rule['out_box_ref']]\
-                ['output_dir']
+
+                box_out_dir = self.out_boxes[rule['out_box_ref']]['output_dir']
                 fname = self.create_filename(rule['dest_filename'],
                                              box_out_dir,
                                              params)
-                
+
                 # todo:  layouting etc
-                
-                
-                self.writer.write(self.save_img, 
-                              geo_img, 
-                              fname, 
-                              **self.get_save_arguments(params))
-                    
-            LOGGER.info('pr %.1f s', (time.time()-t1a))
+
+                self.writer.write(self.save_img,
+                                  geo_img,
+                                  fname,
+                                  **self.get_save_arguments(params))
+
+            LOGGER.info('pr %.1f s', (time.time() - t1a))
 
             # Wait for the writer to finish
             if self._data_ok:
@@ -317,51 +313,52 @@ class DataProcessor(object):
             self.writer.prod_queue.join()
             if self._data_ok:
                 LOGGER.debug("All files saved")
-    
-                LOGGER.info('File %s processed in %.1f s', msg.data['product_filename'],
-                            time.time() - t1a)
-    
+
+                LOGGER.info(
+                    'File %s processed in %.1f s', msg.data
+                    ['product_filename'],
+                    time.time() - t1a)
+
             if not self._data_ok:
-                LOGGER.warning("File %s not processed due to " \
-                               "incomplete/missing/corrupted data." % \
+                LOGGER.warning("File %s not processed due to "
+                               "incomplete/missing/corrupted data." %
                                msg.data['product_filename'])
         else:
-            LOGGER.warning("no matching rule found for %s" % msg.data['product_filename'])
+            LOGGER.warning(
+                "no matching rule found for %s" % msg.data
+                ['product_filename'])
 
-        
-            
     def get_save_arguments(self, rule):
         save_kwords = {}
-        
+
         # check if a certain format is specified
         if 'format' in rule:
             save_kwords['fformat'] = rule['format']
-             
-        # check if a special physical unit is required   
+
+        # check if a special physical unit is required
         if 'physical_unit' in rule:
             save_kwords['physic_unit'] = rule['physical_unit']
-                
+
         # check if a specific ninjo product name is given
         if 'ninjo_product' in rule:
             save_kwords['ninjo_product_name'] = rule['ninjo_product']
-            
+
         # check if there is a satid is defined
         if 'sat_id' in rule:
             save_kwords['sat_id'] = rule['sat_id']
-            
+
         if 'compression' in rule:
             save_kwords['compression'] = eval(rule['compression'])
         else:
-            save_kwords['compression'] = 0 
-            
+            save_kwords['compression'] = 0
+
         if 'blocksize' in rule:
             save_kwords['blocksize'] = eval(rule['blocksize'])
         else:
-            save_kwords['blocksize'] = 0 
+            save_kwords['blocksize'] = 0
 
         return save_kwords
 
-    
     def create_filename(self, fname_pattern, dir_pattern, params=None):
         '''Parse filename for saving.
         '''
@@ -369,23 +366,22 @@ class DataProcessor(object):
         par = Parser(fname)
         fname = par.compose(params)
         return fname
-    
-    
+
     def merge_and_resolve_parameters(self, msg, rule):
         ''' creates parameters dictionary based on data received via posttroll
             and rule and resolves enclosed variables
         '''
-        params = dict((k,v) for k,v in msg.data.items())
+        params = dict((k, v) for k, v in msg.data.items())
         params.update(rule)
         resolved_params = dict()
-        
+
         # special addition to simplify rules
         if 'composite' in params:
             params['composite_no_underscore'] =\
-                params['composite'].replace('_','')
+                params['composite'].replace('_', '')
         else:
             print "no composite key"
-            
+
         for k, v in params.items():
             # take only string parameters
             if isinstance(v, (str, unicode)):
@@ -393,22 +389,22 @@ class DataProcessor(object):
                 resolved_params[k] = par.compose(params)
             else:
                 resolved_params[k] = v
-        
-        
-        return resolved_params            
+
+        return resolved_params
 
 
 class DataWriter(Thread):
+
     """Writes data to disk.
 
     This is separate from the DataProcessor since it IO takes time and we don't
     want to block processing.
     """
+
     def __init__(self):
         Thread.__init__(self)
         self.prod_queue = Queue.Queue()
         self._loop = True
-
 
     def run(self):
         """Run the thread.
@@ -422,12 +418,10 @@ class DataWriter(Thread):
                 fun(*args, **kwargs)
                 self.prod_queue.task_done()
 
-
     def write(self, fun, *args, **kwargs):
         '''Write to queue.
         '''
         self.prod_queue.put((fun, args, kwargs))
-
 
     def stop(self):
         '''Stop the data writer.
@@ -437,7 +431,9 @@ class DataWriter(Thread):
 
 from trollduction.minion import Minion
 
+
 class PostProcessor(Minion):
+
     """PostProcessor takes in messages and generates DataProcessor jobs.
     """
 
@@ -460,9 +456,9 @@ class PostProcessor(Minion):
         try:
             self.update_td_config_from_file(config['config_file'],
                                             config['config_item'])
-            
+
             self.data_processor = DataProcessor()
-            
+
             if not managed:
                 self.config_watcher = \
                     ConfigWatcher(config['config_file'],
@@ -478,13 +474,11 @@ class PostProcessor(Minion):
         # Minion.start(self)
         # self.thr = Thread(target=self.run_single).start()
 
-
     def update_td_config_from_file(self, fname, config_item=None):
         '''Read Trollduction config file and use the new parameters.
         '''
         self.td_config = helper_functions.read_config_file(fname, config_item)
         self.update_td_config()
-
 
     def update_td_config(self):
         '''Setup Trollduction with the loaded configuration.
@@ -494,18 +488,18 @@ class PostProcessor(Minion):
 
         # Initialize/restart listener
         if self.listener is None:
-            self.listener = \
-                            ListenerContainer(topic=\
-                                              self.td_config['td_product_finished_topic'])
+            self.listener = ListenerContainer(
+                topic=self.td_config['td_product_finished_topic'])
 #            self.listener = ListenerContainer()
             LOGGER.info("Listener started")
         else:
-#            self.listener.restart_listener('file')
-            self.listener.restart_listener(self.td_config['td_product_finished_topic'])
+            #            self.listener.restart_listener('file')
+            self.listener.restart_listener(
+                self.td_config['td_product_finished_topic'])
             LOGGER.info("Listener restarted")
 
         try:
-            self.update_product_config(self.td_config['product_config_file'], \
+            self.update_product_config(self.td_config['product_config_file'],
                                        self.td_config['config_item'])
         except KeyError:
             print ""
@@ -514,7 +508,6 @@ class PostProcessor(Minion):
             LOGGER.critical("Key 'product_config_file' or 'config_item' is "
                             "missing from Trollduction config")
 
-
     def update_product_config(self, fname, config_item):
         '''Update area definitions, associated product names, output
         filename prototypes and other relevant information from the
@@ -522,9 +515,8 @@ class PostProcessor(Minion):
         '''
 
         product_config = \
-                         helper_functions.read_config_file(fname,
-                                                           config_item=\
-                                                           config_item)
+            helper_functions.read_config_file(fname,
+                                              config_item=config_item)
 
         # add checks, or do we just assume the config to be valid at
         # this point?
@@ -533,7 +525,6 @@ class PostProcessor(Minion):
             self.td_config['product_config_file'] = fname
 
         LOGGER.info('Product config read from %s', fname)
-
 
     def cleanup(self):
         '''Cleanup Trollduction before shutdown.
@@ -550,19 +541,16 @@ class PostProcessor(Minion):
         if self.listener is not None:
             self.listener.stop()
 
-
     def stop(self):
         """Stop running.
         """
         self.cleanup()
         Minion.stop(self)
 
-
     def shutdown(self):
         '''Shutdown trollduction.
         '''
         self.stop()
-
 
     def run_single(self):
         """Run trollduction.
@@ -581,8 +569,9 @@ class PostProcessor(Minion):
             # For 'file' type messages, update product config and run
             # production
             if msg.type == "file":
-                self.update_product_config(self.td_config['product_config_file'],
-                                           self.td_config['config_item'])
+                self.update_product_config(
+                    self.td_config['product_config_file'],
+                    self.td_config['config_item'])
                 self.data_processor.run(self.product_config, msg)
 #            else:
 #                LOGGER.debug("Message type was %s" % msg.type)
