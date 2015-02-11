@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2014
+# Copyright (c) 2015
 # 
 # Author(s):
 # 
 #   Panu Lahtinen <panu.lahtinen@fmi.fi>
 #   Martin Raspaud <martin.raspaud@smhi.se>
+#   Christian Kliche <chk@ebp.de>
 # 
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -38,6 +39,7 @@ import Queue
 import logging
 import logging.handlers
 from fnmatch import fnmatch
+import re
 import trollduction.helper_functions as helper_functions
 from trollsift import Parser
 from posttroll.publisher import NoisyPublisher
@@ -127,12 +129,16 @@ class ConfigWatcher(object):
         self.notifier.stop()
 
 
-def read_geotiff(filename):
+def read_tiff_with_gdal(filename):
+    """ read (geo)tiff via gdal
+        unfortunatly it does not work after ninjotiff module was loaded 
+    """
+   # saver = __import__('mpop.imageo.formats.ninjotiff', globals(), locals(), ['save'])
     from osgeo import gdal, osr
     logger = LOGGER
     
-    dst = gdal.Open(filename)
-
+    dst = gdal.Open(filename, gdal.GA_ReadOnly)
+    
     #
     # Dataset information
     #
@@ -177,7 +183,34 @@ def read_geotiff(filename):
                    ('projection', projection),
                    ('metadata', metadata)))
 
-    return params, bands_data
+    dst = None
+    
+    channels = []
+    for data in bands_data:
+        arr = np.array(data)
+        channels.append(np.ma.array(arr[:, :] / 255.0))
+        
+    return channels
+
+def read_tiff_with_pil(filename):
+    """ read tiff via PIL
+        workaround function to replace 'read_tiff_with_gdal' until 
+        issues with ninjotiff module have been resolved 
+    """
+    #import mpop.imageo.formats.ninjotiff as ninjotiff
+    #for inf in ninjotiff.info(filename):
+    #    print inf, '\n'
+    
+    from PIL import Image
+    im = Image.open(filename)
+    arr = np.array(im)
+    channels = []
+    if len(arr.shape) == 2:
+        channels.append(np.ma.array(arr[:, :] / 255.0))
+    else:
+        for i in range(0,arr.shape[2]):
+            channels.append(np.ma.array(arr[:, :, i] / 255.0))
+    return channels
 
 
 class DataProcessor(object):
@@ -192,21 +225,18 @@ class DataProcessor(object):
     def set_config(self, product_config):
         self.product_config = product_config
         self.out_boxes = dict()
-        self.rules = dict()
+        self.rules = []
         for key, values in product_config['post_processing'].iteritems():
             for value in values: 
                 if key == 'out_box':
                     self.out_boxes[value['name']] = value
                 elif key == 'rule':
-                    self.rules[value['input_pattern']] = value
+                    self.rules.append(value)
                     
 
     def read_image(self, filename, area, timeslot):
-        channels = []
-        params, bands_data = read_geotiff(filename)
-        for data in bands_data:
-            arr = np.array(data)
-            channels.append(np.ma.array(arr[:, :] / 255.0))
+        #channels_gdal = read_tiff_with_gdal(filename)
+        channels = read_tiff_with_pil(filename)
             
         if len(channels) == 1:
             mode = "L"
@@ -231,55 +261,74 @@ class DataProcessor(object):
         """
         LOGGER.info('New data available: %s', msg.data['product_filename'])
 
-        t1a = time.time()
-
         self._data_ok = True
         self.set_config(product_config)
         
         in_filename = msg.data['product_filename'] 
         in_filename_base = os.path.basename(in_filename)
         rules_to_apply = []
-        
+        rules_to_apply_groups = set()
         # find matching rules 
-        for pattern, rule in self.rules.iteritems():
-            if fnmatch(in_filename_base, pattern):
+        for rule in self.rules:
+            pattern = rule['input_pattern']
+            if re.match(pattern, in_filename_base):
+            #if fnmatch(in_filename_base, pattern):
+                if 'rule_group' in rule:
+                    rg = rule['rule_group']
+                    if rg in rules_to_apply_groups:
+                        continue
+                    else:
+                        rules_to_apply_groups.add(rg)
+                        
                 LOGGER.info("Rule match (%s)" % rule)
                 rules_to_apply.append(rule)
         
         if len(rules_to_apply) > 0:
-                # load image
-                area = get_area_def(msg.data['areaname'])
-                geo_img = self.read_image(in_filename, area, msg.data['time'])
-                name_params = dict((k,v) for k,v in msg.data.items())
+            t1a = time.time()
+            
+            # load image
+            area = get_area_def(msg.data['areaname'])
+            geo_img = self.read_image(in_filename, area, msg.data['time'])
+        
+            # and apply each rule
+            for rule in rules_to_apply:
+                params = self.merge_and_resolve_parameters(msg,
+                                                           rule)
                 
-                # and apply each rule
-                for rule in rules_to_apply:
-                    box_out_dir = self.out_boxes[rule['out_box_ref']]\
-                    ['output_dir']
-                    fname = self.create_filename(rule['dest_filename'],
-                                                 box_out_dir,
-                                                 name_params)
-                    self.writer.write(self.save_img, 
-                                  geo_img, 
-                                  fname, 
-                                  **self.get_save_arguments(rule))
+                box_out_dir = self.out_boxes[rule['out_box_ref']]\
+                ['output_dir']
+                fname = self.create_filename(rule['dest_filename'],
+                                             box_out_dir,
+                                             params)
+                
+                # todo:  layouting etc
+                
+                
+                self.writer.write(self.save_img, 
+                              geo_img, 
+                              fname, 
+                              **self.get_save_arguments(params))
+                    
+            LOGGER.info('pr %.1f s', (time.time()-t1a))
 
-        LOGGER.info('pr %.1f s', (time.time()-t1a))
+            # Wait for the writer to finish
+            if self._data_ok:
+                LOGGER.debug("Waiting for the files to be saved")
+            self.writer.prod_queue.join()
+            if self._data_ok:
+                LOGGER.debug("All files saved")
+    
+                LOGGER.info('File %s processed in %.1f s', msg.data['product_filename'],
+                            time.time() - t1a)
+    
+            if not self._data_ok:
+                LOGGER.warning("File %s not processed due to " \
+                               "incomplete/missing/corrupted data." % \
+                               msg.data['product_filename'])
+        else:
+            LOGGER.warning("no matching rule found for %s" % msg.data['product_filename'])
 
-        # Wait for the writer to finish
-        if self._data_ok:
-            LOGGER.debug("Waiting for the files to be saved")
-        self.writer.prod_queue.join()
-        if self._data_ok:
-            LOGGER.debug("All files saved")
-
-            LOGGER.info('File %s processed in %.1f s', msg.data['product_filename'],
-                        time.time() - t1a)
-
-        if not self._data_ok:
-            LOGGER.warning("File %s not processed due to " \
-                           "incomplete/missing/corrupted data." % \
-                           msg.data['product_filename'])
+        
             
     def get_save_arguments(self, rule):
         save_kwords = {}
@@ -299,44 +348,18 @@ class DataProcessor(object):
         # check if there is a satid is defined
         if 'sat_id' in rule:
             save_kwords['sat_id'] = rule['sat_id']
+            
+        if 'compression' in rule:
+            save_kwords['compression'] = eval(rule['compression'])
+        else:
+            save_kwords['compression'] = 0 
+            
+        if 'blocksize' in rule:
+            save_kwords['blocksize'] = eval(rule['blocksize'])
+        else:
+            save_kwords['blocksize'] = 0 
 
         return save_kwords
-
-    def create_info_dict(self, area=None, product=None):
-        '''create info dictionary.  Parameter *area* is for area-level
-        configuration dictionary, *product* for product-level
-        configuration dictionary.  
-        '''
-
-        try:
-            time_slot = self.local_data.time_slot
-        except AttributeError:
-            time_slot = self.global_data.time_slot
-
-        info_dict = {}
-        info_dict['time'] = time_slot
-
-        if area is not None:
-            info_dict['areaname'] = area['name']
-        else:
-            info_dict['areaname'] = ''
-
-        if product is not None:
-            info_dict['composite'] = product['name']
-        else:
-            info_dict['composite'] = ''
-
-        info_dict['platform'] = self.global_data.info['satname']
-        info_dict['satnumber'] = self.global_data.info['satnumber']
-
-        if self.global_data.info['orbit'] is not None:
-            info_dict['orbit'] = self.global_data.info['orbit']
-        else:
-            info_dict['orbit'] = ''
-
-        info_dict['instrument'] = self.global_data.info['instrument']
-
-        return info_dict
 
     
     def create_filename(self, fname_pattern, dir_pattern, params=None):
@@ -346,6 +369,33 @@ class DataProcessor(object):
         par = Parser(fname)
         fname = par.compose(params)
         return fname
+    
+    
+    def merge_and_resolve_parameters(self, msg, rule):
+        ''' creates parameters dictionary based on data received via posttroll
+            and rule and resolves enclosed variables
+        '''
+        params = dict((k,v) for k,v in msg.data.items())
+        params.update(rule)
+        resolved_params = dict()
+        
+        # special addition to simplify rules
+        if 'composite' in params:
+            params['composite_no_underscore'] =\
+                params['composite'].replace('_','')
+        else:
+            print "no composite key"
+            
+        for k, v in params.items():
+            # take only string parameters
+            if isinstance(v, (str, unicode)):
+                par = Parser(v)
+                resolved_params[k] = par.compose(params)
+            else:
+                resolved_params[k] = v
+        
+        
+        return resolved_params            
 
 
 class DataWriter(Thread):
@@ -359,6 +409,7 @@ class DataWriter(Thread):
         self.prod_queue = Queue.Queue()
         self._loop = True
 
+
     def run(self):
         """Run the thread.
         """
@@ -371,10 +422,12 @@ class DataWriter(Thread):
                 fun(*args, **kwargs)
                 self.prod_queue.task_done()
 
+
     def write(self, fun, *args, **kwargs):
         '''Write to queue.
         '''
         self.prod_queue.put((fun, args, kwargs))
+
 
     def stop(self):
         '''Stop the data writer.
@@ -425,11 +478,13 @@ class PostProcessor(Minion):
         # Minion.start(self)
         # self.thr = Thread(target=self.run_single).start()
 
+
     def update_td_config_from_file(self, fname, config_item=None):
         '''Read Trollduction config file and use the new parameters.
         '''
         self.td_config = helper_functions.read_config_file(fname, config_item)
         self.update_td_config()
+
 
     def update_td_config(self):
         '''Setup Trollduction with the loaded configuration.
@@ -458,6 +513,7 @@ class PostProcessor(Minion):
             print ""
             LOGGER.critical("Key 'product_config_file' or 'config_item' is "
                             "missing from Trollduction config")
+
 
     def update_product_config(self, fname, config_item):
         '''Update area definitions, associated product names, output
@@ -501,10 +557,12 @@ class PostProcessor(Minion):
         self.cleanup()
         Minion.stop(self)
 
+
     def shutdown(self):
         '''Shutdown trollduction.
         '''
         self.stop()
+
 
     def run_single(self):
         """Run trollduction.
