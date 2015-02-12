@@ -339,8 +339,6 @@
             <out_box_ref>ninjo</out_box_ref>
             <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
-            <physical_unit>%</physical_unit>
-            <sat_id>6300014</sat_id>
             <ninjo_product>msg_rgb-12-12-1-n</ninjo_product>
         </rule>
         
@@ -350,7 +348,6 @@
             <out_box_ref>ninjo</out_box_ref>
             <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
-            <sat_id>6300014</sat_id>
             <ninjo_product>msg_rgb-12-12-9i-n</ninjo_product>
         </rule>
 
