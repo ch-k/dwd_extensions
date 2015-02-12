@@ -343,7 +343,16 @@
             <sat_id>6300014</sat_id>
             <ninjo_product>msg_rgb-12-12-1-n</ninjo_product>
         </rule>
-
+        
+        <rule>
+            <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <sat_id>6300014</sat_id>
+            <ninjo_product>msg_rgb-12-12-9i-n</ninjo_product>
+        </rule>
 
         <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_((VIS006)|(VIS008))_nqeuro3km_.*</input_pattern>
