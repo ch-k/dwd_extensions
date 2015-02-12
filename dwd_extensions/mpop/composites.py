@@ -5,15 +5,9 @@ Created on 05.01.2015
 '''
 import copy
 import numpy as np
-import numpy.ma
 import logging
 
-from types import *
-
-import mpop.imageo.geo_image as geo_image
-
-from mpop.channel import Channel
-from mpop.satellites import GeostationaryFactory
+import mpop.imageo.geo_image as geo_image  # @UnresolvedImport
 
 try:
     from pyorbital.astronomy import sun_zenith_angle as sza
@@ -22,11 +16,12 @@ except ImportError:
 
 
 class Enum(set):
+
     def __getattr__(self, attr):
         if attr in self:
             return attr
         raise AttributeError
-    
+
 
 LOGGER = logging.getLogger(__name__)
 # conversion factor K<->C
@@ -38,6 +33,7 @@ SUN_ZEN_NIGHT_LIMIT = 87
 
 IMAGETYPES = Enum(('DAY_ONLY', 'NIGHT_ONLY', 'DAY_NIGHT'))
 
+
 def _dwd_create_single_channel_image(self, chn):
     """Creates a calibrated and corrected single channel black/white image.
     Data calibration:
@@ -45,70 +41,75 @@ def _dwd_create_single_channel_image(self, chn):
     IR channels: temperature -87.5 - +40 C
     Data correction:
     HRV, VIS channels: sun zenith angle correction
-    IR channels: 
+    IR channels: atmospheric correction (not implemented yet)
     """
     if not isinstance(chn, basestring):
         return None
-    
+
     self.check_channels(chn)
-    
+
     # apply calibrations and corrections on channels
     if not self._dwd_channel_preparation(chn):
         return None
-    
+
     if self._is_solar_channel(chn):
-        img = geo_image.GeoImage(self[chn].data,
-                                 self.area,
-                                 self.time_slot,
-                                 fill_value=0,
-                                 mode="L",
-                                 crange=(0, 125))
-    else:
-        img = geo_image.GeoImage(self[chn].data,
-                                 self.area,
-                                 self.time_slot,
-                                 fill_value=0,
-                                 mode="L",
-                                 crange=(-87.5, 40))
-        img.enhance(inverse=True)
-        
-    return img
+        return geo_image.GeoImage(self[chn].data,
+                                  self.area,
+                                  self.time_slot,
+                                  fill_value=0,
+                                  mode="L",
+                                  crange=(0, 125))
+
+    return geo_image.GeoImage(self[chn].data,
+                              self.area,
+                              self.time_slot,
+                              fill_value=0,
+                              mode="L",
+                              crange=(-87.5, 40))
+
 
 def _dwd_apply_sun_zenith_angle_correction(self, chn):
     """Apply sun zenith angle correction on solar channel data.
     """
     if self._is_solar_channel(chn) and \
-    self[chn].info.get("sun_zen_corrected", None) is None:
+            self[chn].info.get("sun_zen_corrected", None) is None:
         self[chn].data = self[chn].sunzen_corr(self.time_slot, limit=85.).data
+
 
 def _dwd_kelvin_to_celsius(self, chn):
     """Apply Kelvin to Celsius conversion on infrared channels.
     """
     if not self._is_solar_channel(chn) and \
-        (self[chn].info['units'] == 'K' or self[chn].unit == 'K'):
-            self[chn].data -= CONVERSION
-            self[chn].info['units'] = self[chn].unit = 'C'
+            (self[chn].info['units'] == 'K' or self[chn].unit == 'K'):
+        self[chn].data -= CONVERSION
+        self[chn].info['units'] = self[chn].unit = 'C'
+
 
 def _is_solar_channel(self, chn):
-    """Checks whether the wave length of the given channel corresponds to solar wave length.
+    """Checks whether the wave length of the given channel corresponds
+    to solar wave length.
     Returns true if the given channel is a visual one; false otherwise.
     """
-    return self[chn].wavelength_range[2] < 4 or chn in ['HRV', 'VIS006', 'VIS008', 'IR_016']
+    return self[chn].wavelength_range[2] < 4 or chn in[
+        'HRV', 'VIS006', 'VIS008', 'IR_016']
+
 
 def _dwd_channel_preparation(self, *chn):
     """Applies to the given channels DWD specific calibrations and corrections.
     Returns True if the calculations were successful; False otherwise.
     """
     result = True
-    
+
     for c in chn:
         self._dwd_apply_sun_zenith_angle_correction(c)
         self._dwd_kelvin_to_celsius(c)
         if self[c].info['units'] != 'C' and self[c].info['units'] != '%':
             result = False
-            LOGGER.error("Calibration for channel " + str(c) +
-                         " failed due to unknown unit " + self[c].info['units'])
+            LOGGER.error(
+                "Calibration for channel " + str(c) +
+                " failed due to unknown unit " + self[c].info['units'])
     return result
+
 
 def _dwd_calculate_sun_zenith_angles(self):
     LOGGER.info('Retrieve sun zenith angles')
@@ -129,12 +130,14 @@ def _dwd_calculate_sun_zenith_angles(self):
         data.sun_zen = np.zeros(shape=data.area.lons.shape)
         q = 500
         for start in xrange(0, data.sun_zen.shape[1], q):
-            data.sun_zen[:,start:start+q] = sza(data.time_slot, 
-                                                data.area.lons[:,start:start+q], 
-                                                data.area.lats[:,start:start+q])
-    
-        #data.sun_zen = sza(data.time_slot, data.area.lons, data.area.lats)
+            data.sun_zen[
+                :, start: start + q] = sza(
+                data.time_slot, data.area.lons[:, start: start + q],
+                data.area.lats[:, start: start + q])
+
+#        data.sun_zen = sza(data.time_slot, data.area.lons, data.area.lats)
     return True
+
 
 def _dwd_get_hrvc(self):
     """Returns the combination of HRV and VIS008 channel data
@@ -146,31 +149,38 @@ def _dwd_get_hrvc(self):
             if self["HRVC"].area != self.area:
                 self._data_holder.channels.remove(self["HRVC"])
                 raise Exception()
+            hrvc_chn = self["HRVC"]
         except:
             hrvc_chn = copy.deepcopy(self["HRV"])
             hrvc_chn.name = "HRVC"
-            hrvc_chn.data = np.ma.where(self["HRV"].data.mask, self[0.85].data, self["HRV"].data)
+            hrvc_chn.data = np.ma.where(
+                self["HRV"].data.mask, self[0.85].data, self["HRV"].data)
             self._data_holder.channels.append(hrvc_chn)
     else:
         hrvc_chn = self["HRV"]
-        
+
     return hrvc_chn
+
 
 def _dwd_get_alpha_channel(self):
     """Returns the alpha values depending on the sun zenith angles.
-    Lower angles result in lower alpha values so this data has to be inverted for the day image.
+    Lower angles result in lower alpha values
+    so this data has to be inverted for the day image.
     """
     if self._dwd_calculate_sun_zenith_angles():
         data = getattr(self, "_data_holder").__getattribute__("sun_zen")
         alpha = np.ma.zeros(data.shape, dtype=np.int)
-        y, x = np.where((data <= SUN_ZEN_NIGHT_LIMIT) & (data >= SUN_ZEN_DAY_LIMIT))
-        alpha[y, x] = ((data[y, x] - SUN_ZEN_DAY_LIMIT)/(SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT))*(254-1)+1
+        y, x = np.where(
+            (data <= SUN_ZEN_NIGHT_LIMIT) & (data >= SUN_ZEN_DAY_LIMIT))
+        alpha[y, x] = ((data[y, x] - SUN_ZEN_DAY_LIMIT) /
+                       (SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT))*(254 - 1) + 1
         alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] = 255
         return alpha
     return None
 
+
 def _dwd_get_image_type(self):
-    """Returns the image type: 
+    """Returns the image type:
     DAY_ONLY if the max value of sun zenith angles is below the day limit
     NIGHT_ONLY if the min value of sun zenith angles is above the day limit
     DAY_NIGHT if the sun zenith angle values are above and below the day limit
@@ -186,32 +196,33 @@ def _dwd_get_image_type(self):
             return IMAGETYPES.DAY_ONLY
     else:
         return None
-    
+
+
 def _dwd_create_RGB_image(self, channels, cranges):
     """Returns an RGB image of the given channel data and color ranges.
     """
     if not isinstance(channels, (list, tuple, set)) and \
-    not isinstance(cranges, (tuple, list, set)) and \
-    not len(channels) == len(cranges) and \
-    not (len(channels) == 3 or len(channels == 4)):
+            not isinstance(cranges, (tuple, list, set)) and \
+            not len(channels) == len(cranges) and \
+            not (len(channels) == 3 or len(channels == 4)):
         raise ValueError("Channels and color ranges must be list/tuple/set \
             and they must have the same length of 3 or 4 elements")
-        
+
     if len(channels) == 3:
         return geo_image.GeoImage(channels,
-                                 self.area,
-                                 self.time_slot,
-                                 fill_value=(0, 0, 0),
-                                 mode="RGB",
-                                 crange=cranges)
+                                  self.area,
+                                  self.time_slot,
+                                  fill_value=(0, 0, 0),
+                                  mode="RGB",
+                                  crange=cranges)
     if len(channels) == 4:
         return geo_image.GeoImage(channels,
-                                 self.area,
-                                 self.time_slot,
-                                 fill_value=(0, 0, 0, 0),
-                                 mode="RGBA",
-                                 crange=cranges)
-    
+                                  self.area,
+                                  self.time_slot,
+                                  fill_value=(0, 0, 0, 0),
+                                  mode="RGBA",
+                                  crange=cranges)
+
 
 def dwd_airmass(self):
     """Make a DWD specific RGB image composite.
@@ -226,7 +237,7 @@ def dwd_airmass(self):
     +--------------------+--------------------+--------------------+
     """
     self.check_channels(6.7, 7.3, 9.7, 10.8)
-    
+
     if not self._dwd_channel_preparation(6.7, 7.3, 9.7, 10.8):
         return None
 
@@ -235,12 +246,13 @@ def dwd_airmass(self):
     ch3 = self[6.7].data
 
     img = self._dwd_create_RGB_image((ch1, ch2, ch3),
-                                ((-25 - CONVERSION, 0 - CONVERSION),
-                                 (-40 - CONVERSION, 5 - CONVERSION),
-                                 (243 - CONVERSION, 208 - CONVERSION)))
+                                     ((-25 - CONVERSION, 0 - CONVERSION),
+                                      (-40 - CONVERSION, 5 - CONVERSION),
+                                      (243 - CONVERSION, 208 - CONVERSION)))
     return img
 
 dwd_airmass.prerequisites = set([6.7, 7.3, 9.7, 10.8])
+
 
 def dwd_schwere_konvektion_tag(self):
     """Make a DWD specific RGB image composite.
@@ -255,10 +267,10 @@ def dwd_schwere_konvektion_tag(self):
     +--------------------+--------------------+--------------------+
     """
     self.check_channels(0.635, 1.63, 3.75, 6.7, 7.3, 10.8)
-    
+
     if not self._dwd_channel_preparation(0.635, 1.63, 3.75, 6.7, 7.3, 10.8):
         return None
-            
+
     ch1 = self[6.7].data - self[7.3].data
     ch2 = self[3.75].data - self[10.8].data
     ch3 = self[1.63].check_range() - self[0.635].check_range()
@@ -271,7 +283,9 @@ def dwd_schwere_konvektion_tag(self):
 
     return img
 
-dwd_schwere_konvektion_tag.prerequisites = set([0.635, 1.63, 3.75, 6.7, 7.3, 10.8])
+dwd_schwere_konvektion_tag.prerequisites = set(
+    [0.635, 1.63, 3.75, 6.7, 7.3, 10.8])
+
 
 def dwd_dust(self):
     """Make a DWD specific RGB image composite.
@@ -287,7 +301,7 @@ def dwd_dust(self):
     +--------------------+--------------------+--------------------+
     """
     self.check_channels(8.7, 10.8, 12.0)
-    
+
     if not self._dwd_channel_preparation(8.7, 10.8, 12.0):
         return None
 
@@ -302,74 +316,82 @@ def dwd_dust(self):
 
     return img
 
-dwd_dust.prerequisites = set([8.7, 10.8, 12.0])   
+dwd_dust.prerequisites = set([8.7, 10.8, 12.0])
+
 
 def dwd_RGB_12_12_1_N(self):
     """Make a DWD specific composite depending sun zenith angle.
     +--------------------+--------------------+--------------------+
     | Channels           | Span               | Gamma              |
     +====================+====================+====================+
-    | HRV                |   0.0 to 100.0 %   |        1.3         |
+    | HRVC               |   0.0 to 100.0 %   |        1.3         |
     +--------------------+--------------------+--------------------+
-    | HRV                |   0.0 to 100.0 %   |        1.3         |
+    | HRVC               |   0.0 to 100.0 %   |        1.3         |
     +--------------------+--------------------+--------------------+
     | VIS006             |   0.0 to 100.0 %   |        1.3         |
-    +--------------------+--------------------+--------------------+ 
+    +--------------------+--------------------+--------------------+
     Use IR10.8 for the night.
     """
-    self.check_channels(0.635, "HRV", 10.8)
-    
-    if not self._dwd_channel_preparation(0.635, "HRV", 10.8):
+    self.check_channels(0.635, 0.85, "HRV", 10.8)
+
+    if not self._dwd_channel_preparation(0.635, 0.85, "HRV", 10.8):
         return None
-    
-    type = self._dwd_get_image_type()
-    if type is None:
+
+    img_type = self._dwd_get_image_type()
+    if img_type is None:
         return None
-    
-    if type == IMAGETYPES.DAY_ONLY:
-        img = self._dwd_create_RGB_image((self["HRV"].data, self["HRV"].data, self[0.635].data),
-                                         ((0, 100),
-                                          (0, 100),
-                                          (0, 100)))
+
+    # get combination of HRV and VIS008 channel data
+    hrvc_chn = self._dwd_get_hrvc()
+
+    if img_type == IMAGETYPES.DAY_ONLY:
+        img = self._dwd_create_RGB_image(
+            (hrvc_chn.data, hrvc_chn.data, self[0.635].data),
+            ((0, 100),
+             (0, 100),
+             (0, 100)))
         img.enhance(gamma=(1.3, 1.3, 1.3))
         return img
-    
-    if type == IMAGETYPES.NIGHT_ONLY:
+
+    if img_type == IMAGETYPES.NIGHT_ONLY:
         return self._dwd_create_single_channel_image('IR_108')
-    
-    if type == IMAGETYPES.DAY_NIGHT:
+
+    if img_type == IMAGETYPES.DAY_NIGHT:
         alpha = self._dwd_get_alpha_channel()
-        # copy data and reset masks to allow correct blending calculation 
-        hrv_data = self["HRV"].data.copy()
-        hrv_data.mask = False
+        # copy data and reset masks to allow correct blending calculation
+        hrv_data_ = hrvc_chn.data.copy()
+        hrv_data_.mask = False
         vis_data = self[0.635].data.copy()
         vis_data.mask = False
         ir108_data = self[10.8].data.copy()
         ir108_data.mask = False
         # create day image
-        day_img = self._dwd_create_RGB_image((hrv_data, hrv_data, vis_data, alpha),
-                                             ((0, 100),
-                                              (0, 100),
-                                              (0, 100),
-                                              (0, 255)))
-        day_img.enhance(gamma=(1.3, 1.3, 1.3, 1.0), inverse=(False, False, False, True))
-        # create night image 
-        night_img = self._dwd_create_RGB_image((ir108_data, ir108_data, ir108_data, alpha),
-                                               ((-87.5, 40),
-                                                (-87.5, 40),
-                                                (-87.5, 40),
-                                                (0, 255)))
-        night_img.enhance(inverse=(True, True, True, False))
+        day_img = self._dwd_create_RGB_image(
+            (hrv_data_, hrv_data_, vis_data, alpha),
+            ((0, 100),
+             (0, 100),
+             (0, 100),
+             (0, 255)))
+        day_img.enhance(
+            inverse=(False, False, False, True), gamma=(1.3, 1.3, 1.3, 1.0))
+        # create night image
+        night_img = self._dwd_create_RGB_image(
+            (ir108_data, ir108_data, ir108_data, alpha),
+            ((40, -87.5),
+             (40, -87.5),
+             (40, -87.5),
+             (0, 255)))
         # blend day over night
         night_img.blend(day_img)
         # remove alpha channels
         night_img.convert("RGB")
-    
+
         return night_img
-    
+
     return None
 
-dwd_RGB_12_12_1_N.prerequisites = set([0.635, "HRV", 10.8])
+dwd_RGB_12_12_1_N.prerequisites = set([0.635, 0.85, "HRV", 10.8])
+
 
 def dwd_RGB_12_12_9i_N(self):
     """Make a DWD specific composite depending sun zenith angle.
@@ -382,7 +404,7 @@ def dwd_RGB_12_12_9i_N(self):
     | HRVC               |   0.0 to 100.0 %   |        1.0         |
     +--------------------+--------------------+--------------------+
     | IR108              |  323.0 to 203.0 K  |        1.0         |
-    +--------------------+--------------------+--------------------+ 
+    +--------------------+--------------------+--------------------+
     night:
     +--------------------+--------------------+--------------------+
     | Channels           | Span               | Gamma              |
@@ -392,37 +414,39 @@ def dwd_RGB_12_12_9i_N(self):
     | IR108 (inverted)   |         ---        |        1.0         |
     +--------------------+--------------------+--------------------+
     | IR120 (inverted)   |         ---        |        1.0         |
-    +--------------------+--------------------+--------------------+ 
+    +--------------------+--------------------+--------------------+
     """
     self.check_channels("HRV", 0.85, 10.8, 3.75, 12.0)
-    
+
     if not self._dwd_channel_preparation("HRV", 0.85, 10.8, 3.75, 12.0):
         return None
-    
+
     # get combination of HRV and VIS008 channel data
     hrvc_chn = self._dwd_get_hrvc()
-    
-    type = self._dwd_get_image_type()
-    if type is None:
+
+    img_type = self._dwd_get_image_type()
+    if img_type is None:
         return None
-    
-    if type == IMAGETYPES.DAY_ONLY:
-        return self._dwd_create_RGB_image((hrvc_chn.data, hrvc_chn.data, self[10.8].data),
-                                     ((0, 100),
-                                      (0, 100),
-                                      (203 - CONVERSION, 323 - CONVERSION)))
-    
-    if type == IMAGETYPES.NIGHT_ONLY:
-        img = self._dwd_create_RGB_image((self[3.75].data, self[10.8].data, self[12.0].data),
-                                         ((-87.5, 40),
-                                          (-87.5, 40),
-                                          (-87.5, 40)))
-        img.enhance(inverse=True, stretch = "histogram")
+
+    if img_type == IMAGETYPES.DAY_ONLY:
+        return self._dwd_create_RGB_image(
+            (hrvc_chn.data, hrvc_chn.data, self[10.8].data),
+            ((0, 100),
+             (0, 100),
+             (323 - CONVERSION, 203 - CONVERSION)))
+
+    if img_type == IMAGETYPES.NIGHT_ONLY:
+        img = self._dwd_create_RGB_image(
+            (self[3.75].data, self[10.8].data, self[12.0].data),
+            ((40, -87.5),
+             (40, -87.5),
+             (40, -87.5)))
+        img.enhance(stretch="histogram")
         return img
-    
-    if type == IMAGETYPES.DAY_NIGHT:
+
+    if img_type == IMAGETYPES.DAY_NIGHT:
         alpha = self._dwd_get_alpha_channel()
-        # copy data and reset masks to allow correct blending calculation 
+        # copy data and reset masks to allow correct blending calculation
         hrvc_data = hrvc_chn.data.copy()
         hrvc_data.mask = False
         ir108_data = self[10.8].data.copy()
@@ -431,98 +455,113 @@ def dwd_RGB_12_12_9i_N(self):
         ir039_data.mask = False
         ir120_data = self[12.0].data.copy()
         ir120_data.mask = False
-        # create day image 
-        day_img = self._dwd_create_RGB_image((hrvc_data, hrvc_data, ir108_data, alpha),
-                                             ((0, 100),
-                                              (0, 100),
-                                              (203 - CONVERSION, 323 - CONVERSION),
-                                              (0, 255)))
+        # create day image
+        day_img = self._dwd_create_RGB_image(
+            (hrvc_data, hrvc_data, ir108_data, alpha),
+            ((0, 100),
+             (0, 100),
+             (323 - CONVERSION, 203 - CONVERSION),
+             (0, 255)))
         day_img.enhance(inverse=(False, False, False, True))
         # create night image
-        night_img = self._dwd_create_RGB_image((ir039_data, ir108_data, ir120_data, alpha),
-                                               ((-87.5, 40),
-                                                (-87.5, 40),
-                                                (-87.5, 40),
-                                                (0, 255)))
-        night_img.enhance(inverse=(True, True, True, False), stretch = "histogram")
+        night_img = self._dwd_create_RGB_image(
+            (ir039_data, ir108_data, ir120_data, alpha),
+            ((40, -87.5),
+             (40, -87.5),
+             (40, -87.5),
+             (0, 255)))
+        night_img.enhance(stretch="histogram")
         # blend day over night
         night_img.blend(day_img)
         # remove alpha channels before saving
         night_img.convert("RGB")
-    
+
         return night_img
-    
+
     return None
-    
+
 dwd_RGB_12_12_9i_N.prerequisites = set(["HRV", 0.85, 10.8, 3.75, 12.0])
-    
+
+
 def dwd_ninjo_VIS006(self):
     return self._dwd_create_single_channel_image('VIS006')
 
 dwd_ninjo_VIS006.prerequisites = set(['VIS006'])
+
 
 def dwd_ninjo_VIS008(self):
     return self._dwd_create_single_channel_image('VIS008')
 
 dwd_ninjo_VIS008.prerequisites = set(['VIS008'])
 
+
 def dwd_ninjo_IR_016(self):
     return self._dwd_create_single_channel_image('IR_016')
 
 dwd_ninjo_IR_016.prerequisites = set(['IR_016'])
+
 
 def dwd_ninjo_IR_039(self):
     return self._dwd_create_single_channel_image('IR_039')
 
 dwd_ninjo_IR_039.prerequisites = set(['IR_039'])
 
+
 def dwd_ninjo_WV_062(self):
     return self._dwd_create_single_channel_image('WV_062')
 
 dwd_ninjo_WV_062.prerequisites = set(['WV_062'])
+
 
 def dwd_ninjo_WV_073(self):
     return self._dwd_create_single_channel_image('WV_073')
 
 dwd_ninjo_WV_073.prerequisites = set(['WV_073'])
 
+
 def dwd_ninjo_IR_087(self):
     return self._dwd_create_single_channel_image('IR_087')
 
 dwd_ninjo_IR_087.prerequisites = set(['IR_087'])
+
 
 def dwd_ninjo_IR_097(self):
     return self._dwd_create_single_channel_image('IR_097')
 
 dwd_ninjo_IR_097.prerequisites = set(['IR_097'])
 
+
 def dwd_ninjo_IR_108(self):
     return self._dwd_create_single_channel_image('IR_108')
 
 dwd_ninjo_IR_108.prerequisites = set(['IR_108'])
+
 
 def dwd_ninjo_IR_120(self):
     return self._dwd_create_single_channel_image('IR_120')
 
 dwd_ninjo_IR_120.prerequisites = set(['IR_120'])
 
+
 def dwd_ninjo_IR_134(self):
     return self._dwd_create_single_channel_image('IR_134')
 
 dwd_ninjo_IR_134.prerequisites = set(['IR_134'])
-        
+
+
 def dwd_ninjo_HRV(self):
     return self._dwd_create_single_channel_image('HRV')
 
 dwd_ninjo_HRV.prerequisites = set(['HRV'])
 
-   
-seviri = [_is_solar_channel, _dwd_kelvin_to_celsius, _dwd_apply_sun_zenith_angle_correction,
-          _dwd_channel_preparation, _dwd_create_single_channel_image,
-          _dwd_calculate_sun_zenith_angles, _dwd_get_hrvc, _dwd_get_alpha_channel,
-          _dwd_get_image_type, _dwd_create_RGB_image,
-          dwd_ninjo_VIS006, dwd_ninjo_VIS008, dwd_ninjo_IR_016, dwd_ninjo_IR_039,
-          dwd_ninjo_WV_062, dwd_ninjo_WV_073, dwd_ninjo_IR_087, dwd_ninjo_IR_097,
-          dwd_ninjo_IR_108, dwd_ninjo_IR_120, dwd_ninjo_IR_134, dwd_ninjo_HRV,
-          dwd_airmass, dwd_schwere_konvektion_tag, dwd_dust, dwd_RGB_12_12_1_N,
-          dwd_RGB_12_12_9i_N]
+
+seviri = [
+    _is_solar_channel, _dwd_kelvin_to_celsius,
+    _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
+    _dwd_create_single_channel_image, _dwd_calculate_sun_zenith_angles,
+    _dwd_get_hrvc, _dwd_get_alpha_channel, _dwd_get_image_type,
+    _dwd_create_RGB_image, dwd_ninjo_VIS006, dwd_ninjo_VIS008,
+    dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
+    dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
+    dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
+    dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N]
