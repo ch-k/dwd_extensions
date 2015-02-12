@@ -75,6 +75,13 @@ def _ask_user(section, name, value):
     else:
         return value
 
+def set_text_by_attribute(elem, attr_name, attr_value, new_text):
+    if elem.attrib.has_key(attr_name) and elem.attrib[attr_name] == attr_value:
+        elem.text = new_text
+        print "setting value of node with %s = %s to %s" % (attr_name, attr_value, new_text)
+    for ch in elem:
+        set_text_by_attribute(ch, attr_name, attr_value, new_text)
+
 def set_xml_values(keyParser, configFileName, non_interactive):
     """Sets the key values of keyParser in given xml config file.
     """
@@ -89,12 +96,9 @@ def set_xml_values(keyParser, configFileName, non_interactive):
             else:    
                 userValue = _ask_user(section, name, value)
             keyParser.set(section, name, userValue)
-            #for elem in treeElement.findall(".//" + name):
-            for elem in treeElement.findall(".//*[@id='%s']" % name):
-                elem.text = userValue
+            set_text_by_attribute(treeElement, "id", name, userValue)   
     tree.write(configFileName, encoding="utf-8")
-    
-    
+      
 def main():
     """Sets the key values in the corresponding config files.
     """
