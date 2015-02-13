@@ -151,10 +151,16 @@ def _dwd_get_hrvc(self):
                 raise Exception()
             hrvc_chn = self["HRVC"]
         except:
-            hrvc_chn = copy.deepcopy(self["HRV"])
+            hrv_chn = self["HRV"]
+            hrvc_chn = copy.deepcopy(hrv_chn)
             hrvc_chn.name = "HRVC"
+            hrvc_chn.data = None
+            hrvc_chn.area = None
+            hrvc_chn.area_def = None
+            hrvc_chn.area = hrv_chn.area
+            hrvc_chn.area_def = hrv_chn.area_def
             hrvc_chn.data = np.ma.where(
-                self["HRV"].data.mask, self[0.85].data, self["HRV"].data)
+                hrv_chn.data.mask, self[0.85].data, hrv_chn.data)
             self._data_holder.channels.append(hrvc_chn)
     else:
         hrvc_chn = self["HRV"]
