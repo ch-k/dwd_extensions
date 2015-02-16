@@ -416,6 +416,9 @@ class DataWriter(Thread):
                 pass
             else:
                 fun(*args, **kwargs)
+                fun = None
+                args = None
+                kwargs = None
                 self.prod_queue.task_done()
 
     def write(self, fun, *args, **kwargs):
