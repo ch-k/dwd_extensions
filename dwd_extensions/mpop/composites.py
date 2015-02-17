@@ -175,7 +175,7 @@ def _dwd_get_alpha_channel(self):
     """
     try:
         self.check_channels("ALPHA")
-        if self["APLPHA"].data.shape != self.area.shape:
+        if self["ALPHA"].data.shape != self.area.shape:
             self._data_holder.channels.remove(self["ALPHA"])
             raise Exception
     except:
