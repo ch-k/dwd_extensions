@@ -3,11 +3,11 @@ Created on 05.01.2015
 
 @author: Christian Kliche <chk@ebp.de>
 '''
-import copy
 import numpy as np
 import logging
 
 import mpop.imageo.geo_image as geo_image  # @UnresolvedImport
+from mpop.channel import Channel  # @UnresolvedImport
 
 try:
     from pyorbital.astronomy import sun_zenith_angle as sza
@@ -73,7 +73,11 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
     """
     if self._is_solar_channel(chn) and \
             self[chn].info.get("sun_zen_corrected", None) is None:
-        self[chn].data = self[chn].sunzen_corr(self.time_slot, limit=85.).data
+        if self.area.lons is None or self.area.lats is None:
+            self.area.lons, self.area.lats = self.area.get_lonlats()
+        sun_zen_chn = self[chn].sunzen_corr(self.time_slot, limit=85.)
+        self[chn].data = sun_zen_chn.data.copy()
+        del(sun_zen_chn)
 
 
 def _dwd_kelvin_to_celsius(self, chn):
@@ -111,56 +115,52 @@ def _dwd_channel_preparation(self, *chn):
     return result
 
 
-def _dwd_calculate_sun_zenith_angles(self):
+def _dwd_get_sun_zenith_angles_channel(self):
+    """Returns the sun zenith angles for the area of interest as a channel.
+    """
     LOGGER.info('Retrieve sun zenith angles')
     try:
-        data = getattr(self, "_data_holder")
-    except AttributeError:
-        LOGGER.error("No such data: _data_holder")
-        return False
-
-    try:
-        data.__getattribute__("sun_zen")
-    except AttributeError:
-        if data.area.lons is None:
-            LOGGER.debug("Load coordinates for _data_holder")
-            data.area.lons, data.area.lats = data.area.get_lonlats()
-
-        LOGGER.debug("Calculating Sun zenith angles for _data_holder")
-        data.sun_zen = np.zeros(shape=data.area.lons.shape)
+        self.check_channels("SUN_ZEN_CHN")
+        if self["SUN_ZEN_CHN"].data.shape != self.area.shape:
+            self._data_holder.channels.remove(self["SUN_ZEN_CHN"])
+            raise Exception()
+    except:
+        if self.area.lons is None or self.area.lats is None:
+            self.area.lons, self.area.lats = self.area.get_lonlats()
+        sun_zen_chn_data = np.zeros(shape=self.area.lons.shape)
         q = 500
-        for start in xrange(0, data.sun_zen.shape[1], q):
-            data.sun_zen[
+        for start in xrange(0, sun_zen_chn_data.shape[1], q):
+            sun_zen_chn_data[
                 :, start: start + q] = sza(
-                data.time_slot, data.area.lons[:, start: start + q],
-                data.area.lats[:, start: start + q])
+                self.time_slot, self.area.lons[:, start: start + q],
+                self.area.lats[:, start: start + q])
+        sun_zen_chn = Channel(name="SUN_ZEN_CHN",
+                              data=sun_zen_chn_data)
+        self._data_holder.channels.append(sun_zen_chn)
 
-#        data.sun_zen = sza(data.time_slot, data.area.lons, data.area.lats)
-    return True
+    return self["SUN_ZEN_CHN"]
 
 
-def _dwd_get_hrvc(self):
+def _dwd_get_hrvc_channel(self):
     """Returns the combination of HRV and VIS008 channel data
-    if there is a gap in HRV; otherwise HRV only.
+    if there are gaps in HRV data; otherwise HRV only.
     """
     if np.ma.is_masked(self["HRV"].data):
         try:
             self.check_channels("HRVC")
-            if self["HRVC"].area != self.area:
+            if self["HRVC"].data.shape != self.area.shape:
                 self._data_holder.channels.remove(self["HRVC"])
                 raise Exception()
             hrvc_chn = self["HRVC"]
         except:
             hrv_chn = self["HRV"]
-            hrvc_chn = copy.deepcopy(hrv_chn)
-            hrvc_chn.name = "HRVC"
-            hrvc_chn.data = None
-            hrvc_chn.area = None
-            hrvc_chn.area_def = None
-            hrvc_chn.area = hrv_chn.area
-            hrvc_chn.area_def = hrv_chn.area_def
-            hrvc_chn.data = np.ma.where(
+            hrvc_data = np.ma.where(
                 hrv_chn.data.mask, self[0.85].data, hrv_chn.data)
+            hrvc_chn = Channel(name="HRVC",
+                               resolution=hrv_chn.resolution,
+                               wavelength_range=hrv_chn.wavelength_range,
+                               data=hrvc_data,
+                               calibration_unit=hrv_chn.unit)
             self._data_holder.channels.append(hrvc_chn)
     else:
         hrvc_chn = self["HRV"]
@@ -173,16 +173,24 @@ def _dwd_get_alpha_channel(self):
     Lower angles result in lower alpha values
     so this data has to be inverted for the day image.
     """
-    if self._dwd_calculate_sun_zenith_angles():
-        data = getattr(self, "_data_holder").__getattribute__("sun_zen")
+    try:
+        self.check_channels("ALPHA")
+        if self["APLPHA"].data.shape != self.area.shape:
+            self._data_holder.channels.remove(self["ALPHA"])
+            raise Exception
+    except:
+        sun_zen_chn = self._dwd_get_sun_zenith_angles_channel()
+        data = sun_zen_chn.data
         alpha = np.ma.zeros(data.shape, dtype=np.int)
         y, x = np.where(
             (data <= SUN_ZEN_NIGHT_LIMIT) & (data >= SUN_ZEN_DAY_LIMIT))
         alpha[y, x] = ((data[y, x] - SUN_ZEN_DAY_LIMIT) /
                        (SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT))*(254 - 1) + 1
-        alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] = 255
-        return alpha
-    return None
+        alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] += 255
+        alpha_chn = Channel(name="ALPHA",
+                            data=alpha)
+        self._data_holder.channels.append(alpha_chn)
+    return self["ALPHA"]
 
 
 def _dwd_get_image_type(self):
@@ -191,17 +199,17 @@ def _dwd_get_image_type(self):
     NIGHT_ONLY if the min value of sun zenith angles is above the day limit
     DAY_NIGHT if the sun zenith angle values are above and below the day limit
     """
-    if self._dwd_calculate_sun_zenith_angles():
-        data = getattr(self, "_data_holder").__getattribute__("sun_zen")
+    if self._data_holder.info.get("image_type", None) is None:
+        sun_zen_chn = self._dwd_get_sun_zenith_angles_channel()
+        data = sun_zen_chn.data
         if np.max(data.astype(int)) > SUN_ZEN_DAY_LIMIT:
             if np.min(data.astype(int)) >= SUN_ZEN_DAY_LIMIT:
-                return IMAGETYPES.NIGHT_ONLY
+                self._data_holder.info["image_type"] = IMAGETYPES.NIGHT_ONLY
             else:
-                return IMAGETYPES.DAY_NIGHT
+                self._data_holder.info["image_type"] = IMAGETYPES.DAY_NIGHT
         else:
-            return IMAGETYPES.DAY_ONLY
-    else:
-        return None
+            self._data_holder.info["image_type"] = IMAGETYPES.DAY_ONLY
+    return self._data_holder.info["image_type"]
 
 
 def _dwd_create_RGB_image(self, channels, cranges):
@@ -348,7 +356,7 @@ def dwd_RGB_12_12_1_N(self):
         return None
 
     # get combination of HRV and VIS008 channel data
-    hrvc_chn = self._dwd_get_hrvc()
+    hrvc_chn = self._dwd_get_hrvc_channel()
 
     if img_type == IMAGETYPES.DAY_ONLY:
         img = self._dwd_create_RGB_image(
@@ -363,7 +371,7 @@ def dwd_RGB_12_12_1_N(self):
         return self._dwd_create_single_channel_image('IR_108')
 
     if img_type == IMAGETYPES.DAY_NIGHT:
-        alpha = self._dwd_get_alpha_channel()
+        alpha_data = self._dwd_get_alpha_channel().data
         # copy data and reset masks to allow correct blending calculation
         hrv_data_ = hrvc_chn.data.copy()
         hrv_data_.mask = False
@@ -373,7 +381,7 @@ def dwd_RGB_12_12_1_N(self):
         ir108_data.mask = False
         # create day image
         day_img = self._dwd_create_RGB_image(
-            (hrv_data_, hrv_data_, vis_data, alpha),
+            (hrv_data_, hrv_data_, vis_data, alpha_data),
             ((0, 100),
              (0, 100),
              (0, 100),
@@ -382,7 +390,7 @@ def dwd_RGB_12_12_1_N(self):
             inverse=(False, False, False, True), gamma=(1.3, 1.3, 1.3, 1.0))
         # create night image
         night_img = self._dwd_create_RGB_image(
-            (ir108_data, ir108_data, ir108_data, alpha),
+            (ir108_data, ir108_data, ir108_data, alpha_data),
             ((40, -87.5),
              (40, -87.5),
              (40, -87.5),
@@ -428,7 +436,7 @@ def dwd_RGB_12_12_9i_N(self):
         return None
 
     # get combination of HRV and VIS008 channel data
-    hrvc_chn = self._dwd_get_hrvc()
+    hrvc_chn = self._dwd_get_hrvc_channel()
 
     img_type = self._dwd_get_image_type()
     if img_type is None:
@@ -451,7 +459,7 @@ def dwd_RGB_12_12_9i_N(self):
         return img
 
     if img_type == IMAGETYPES.DAY_NIGHT:
-        alpha = self._dwd_get_alpha_channel()
+        alpha_data = self._dwd_get_alpha_channel().data
         # copy data and reset masks to allow correct blending calculation
         hrvc_data = hrvc_chn.data.copy()
         hrvc_data.mask = False
@@ -463,7 +471,7 @@ def dwd_RGB_12_12_9i_N(self):
         ir120_data.mask = False
         # create day image
         day_img = self._dwd_create_RGB_image(
-            (hrvc_data, hrvc_data, ir108_data, alpha),
+            (hrvc_data, hrvc_data, ir108_data, alpha_data),
             ((0, 100),
              (0, 100),
              (323 - CONVERSION, 203 - CONVERSION),
@@ -471,7 +479,7 @@ def dwd_RGB_12_12_9i_N(self):
         day_img.enhance(inverse=(False, False, False, True))
         # create night image
         night_img = self._dwd_create_RGB_image(
-            (ir039_data, ir108_data, ir120_data, alpha),
+            (ir039_data, ir108_data, ir120_data, alpha_data),
             ((40, -87.5),
              (40, -87.5),
              (40, -87.5),
@@ -564,8 +572,8 @@ dwd_ninjo_HRV.prerequisites = set(['HRV'])
 seviri = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
-    _dwd_create_single_channel_image, _dwd_calculate_sun_zenith_angles,
-    _dwd_get_hrvc, _dwd_get_alpha_channel, _dwd_get_image_type,
+    _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
+    _dwd_get_hrvc_channel, _dwd_get_alpha_channel, _dwd_get_image_type,
     _dwd_create_RGB_image, dwd_ninjo_VIS006, dwd_ninjo_VIS008,
     dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
     dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
