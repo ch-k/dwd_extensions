@@ -260,8 +260,8 @@ def dwd_airmass(self):
     ch3 = self[6.7].data
 
     img = self._dwd_create_RGB_image((ch1, ch2, ch3),
-                                     ((-25 - CONVERSION, 0 - CONVERSION),
-                                      (-40 - CONVERSION, 5 - CONVERSION),
+                                     ((-25, 0),
+                                      (-40, 5),
                                       (243 - CONVERSION, 208 - CONVERSION)))
     return img
 
@@ -290,8 +290,8 @@ def dwd_schwere_konvektion_tag(self):
     ch3 = self[1.63].check_range() - self[0.635].check_range()
 
     img = self._dwd_create_RGB_image((ch1, ch2, ch3),
-                                     ((-35 - CONVERSION, 5 - CONVERSION),
-                                      (-5 - CONVERSION, 60 - CONVERSION),
+                                     ((-35, 5),
+                                      (-5, 60),
                                       (-75, 25)))
     img.enhance(gamma=(1.0, 0.5, 1.0))
 
@@ -323,8 +323,8 @@ def dwd_dust(self):
     ch2 = self[10.8].data - self[8.7].data
     ch3 = self[10.8].data
     img = self._dwd_create_RGB_image((ch1, ch2, ch3),
-                                     ((-4 - CONVERSION, 2 - CONVERSION),
-                                      (0 - CONVERSION, 15 - CONVERSION),
+                                     ((-4, 2),
+                                      (0, 15),
                                       (261 - CONVERSION, 289 - CONVERSION)))
     img.enhance(gamma=(1.0, 2.5, 1.0))
 
