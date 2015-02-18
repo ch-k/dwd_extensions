@@ -252,8 +252,8 @@
             <input_pattern>METEOSAT_AFRIKA_EUROPA_((HRV)|(VIS006)|(VIS008))_.*km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_AFRIKA_EUROPA_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_AFRIKA_EUROPA_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <ninjo_product>{composite}</ninjo_product>
         </rule>
@@ -262,8 +262,8 @@
             <input_pattern>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_*.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <ninjo_product>IR_016</ninjo_product>
         </rule>
@@ -272,8 +272,8 @@
             <input_pattern>METEOSAT_AFRIKA_EUROPA_((IR039)|(WV062)|(WV073)|(IR087)|(IR097)|(IR108)|(IR120)|(IR134))_nq0003km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_AFRIKA_EUROPA_{composite_no_underscore}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_AFRIKA_EUROPA_{composite_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>C</physical_unit>
             <ninjo_product>{composite}</ninjo_product>
         </rule>
@@ -282,8 +282,8 @@
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <ninjo_product>{composite}</ninjo_product>
             <sat_id>6400014</sat_id>
@@ -293,8 +293,8 @@
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_((VIS006)|(VIS008))_nqceur3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <sat_id>6400014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -304,8 +304,8 @@
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_NIR016_nqceur3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_ZENTRAL_NIR016_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_NIR016_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <sat_id>6400014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -315,8 +315,8 @@
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_((IR039)|(WV062)|(WV073)|(IR087)|(IR097)|(IR108)|(IR120)|(IR134))_nqceur3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite_no_underscore}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{composite_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>C</physical_unit>
             <sat_id>6400014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -326,8 +326,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_HRV_nqeuro1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <sat_id>6300014</sat_id>
             <ninjo_product>HRV</ninjo_product>
@@ -337,8 +337,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-1-N_nqeuro1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <ninjo_product>msg_rgb-12-12-1-n</ninjo_product>
         </rule>
         
@@ -346,8 +346,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <ninjo_product>msg_rgb-12-12-9i-n</ninjo_product>
         </rule>
 
@@ -355,8 +355,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_((VIS006)|(VIS008))_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <sat_id>6300014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -366,8 +366,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_NIR016_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_NIR016_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_NIR016_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>%</physical_unit>
             <sat_id>6300014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -377,8 +377,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_((IR039)|(WV062)|(WV073)|(IR087)|(IR097)|(IR108)|(IR120)|(IR134))_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite_no_underscore}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <physical_unit>C</physical_unit>
             <sat_id>6300014</sat_id>
             <ninjo_product>{composite}</ninjo_product>
@@ -388,8 +388,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-Luftmasse_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <ninjo_product>msg_airmass</ninjo_product>
         </rule>
 
@@ -397,8 +397,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-Konvektion_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <ninjo_product>msg_schwere_konvektion_tag</ninjo_product>
         </rule>
 
@@ -406,8 +406,8 @@
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time:%Y%m%d%H%M}.tif</dest_filename>
-            <format>mpop.imageo.formats.ninjotiff</format>
+            <dest_filename>METEOSAT_EUROPA_GESAMT_{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <ninjo_product>msg_dust</ninjo_product>
         </rule>
 
@@ -416,7 +416,7 @@
 
         <rule>
             <input_pattern>bla.*</input_pattern>
-            <dest_filename>{platform}{satnumber}_{composite}_{areaname}_ql_{time:%Y%m%d%H%M}.gif</dest_filename>
+            <dest_filename>{platform}{satnumber}_{composite}_{areaname}_ql_{time_eos:%Y%m%d%H%M}.gif</dest_filename>
             <out_box_ref>browser</out_box_ref>
             <layout>quicklook</layout>
         </rule>

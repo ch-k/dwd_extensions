@@ -39,6 +39,7 @@ from fnmatch import fnmatch
 import re
 import trollduction.helper_functions as helper_functions
 from trollsift import Parser
+import datetime
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -234,8 +235,8 @@ class DataProcessor(object):
                     self.rules.append(value)
 
     def read_image(self, filename, area, timeslot):
-        # channels_gdal = read_tiff_with_gdal(filename)
-        channels = read_tiff_with_pil(filename)
+        channels = read_tiff_with_gdal(filename)
+        # channels = read_tiff_with_pil(filename)
 
         if len(channels) == 1:
             mode = "L"
@@ -253,6 +254,7 @@ class DataProcessor(object):
 
     def save_img(self, geo_img, fname, **kwargs):
         geo_img.save(fname, **kwargs)
+        # if file exists write to rrd
 
     def run(self, product_config, msg):
         """Process the data
@@ -350,7 +352,7 @@ class DataProcessor(object):
         if 'compression' in rule:
             save_kwords['compression'] = eval(rule['compression'])
         else:
-            save_kwords['compression'] = 0
+            save_kwords['compression'] = 6
 
         if 'blocksize' in rule:
             save_kwords['blocksize'] = eval(rule['blocksize'])
@@ -381,6 +383,13 @@ class DataProcessor(object):
                 params['composite'].replace('_', '')
         else:
             print "no composite key"
+
+        if 'time' in params:
+            t = params['time']
+            t_eos = t + datetime.timedelta(minutes=15)
+            params['time_eos'] = t_eos
+        else:
+            print "no time key"
 
         for k, v in params.items():
             # take only string parameters
