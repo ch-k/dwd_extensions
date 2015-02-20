@@ -236,14 +236,14 @@
     </area>
 
     <post_processing>
-
+        <rrd_dir id="post_processing_rrd_dir">rrd</rrd_dir>
         <out_box>
             <name>ninjo</name>
-            <output_dir id="out_box_dir_ninjo">/home/pytroll/OUTBOXES/ninjo/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
+            <output_dir id="out_box_dir_ninjo">/home/pytroll/OUTBOXES/ninjo/{time_eos:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
         </out_box>
         <out_box>
             <name>browser</name>
-            <output_dir id="out_box_dir_browser">/home/pytroll/OUTBOXES/browser/{time:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
+            <output_dir id="out_box_dir_browser">/home/pytroll/OUTBOXES/browser/{time_eos:%Y-%m-%d}/{platform}{satnumber}/{composite}/{areaname}/</output_dir>
         </out_box>
 
         <!-- NINJO -->

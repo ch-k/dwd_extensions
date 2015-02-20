@@ -33,6 +33,7 @@ from mpop.projector import get_area_def
 from threading import Thread
 import numpy as np
 import os
+import sys
 import Queue
 import logging
 from fnmatch import fnmatch
@@ -40,6 +41,8 @@ import re
 import trollduction.helper_functions as helper_functions
 from trollsift import Parser
 import datetime
+import rrdtool
+import os.path
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -212,6 +215,10 @@ def read_tiff_with_pil(filename):
     return channels
 
 
+def to_unix_seconds(dt):
+    return int(dt.strftime("%s"))
+
+
 class DataProcessor(object):
 
     """Process the data.
@@ -220,6 +227,7 @@ class DataProcessor(object):
     def __init__(self):
         self.product_config = None
         self._data_ok = True
+        self.rrd_dir = 'rrd'
         self.writer = DataWriter()
         self.writer.start()
 
@@ -228,11 +236,14 @@ class DataProcessor(object):
         self.out_boxes = dict()
         self.rules = []
         for key, values in product_config['post_processing'].iteritems():
-            for value in values:
-                if key == 'out_box':
-                    self.out_boxes[value['name']] = value
-                elif key == 'rule':
-                    self.rules.append(value)
+            if key == 'rrd_dir':
+                self.rrd_dir = values
+            else:
+                for value in values:
+                    if key == 'out_box':
+                        self.out_boxes[value['name']] = value
+                    elif key == 'rule':
+                        self.rules.append(value)
 
     def read_image(self, filename, area, timeslot):
         channels = read_tiff_with_gdal(filename)
@@ -252,9 +263,28 @@ class DataProcessor(object):
                                      mode=mode)
         return geo_img
 
-    def save_img(self, geo_img, fname, **kwargs):
-        geo_img.save(fname, **kwargs)
-        # if file exists write to rrd
+    def save_img(self, geo_img, fname, rrd_fname, params):
+        save_params = self.get_save_arguments(params)
+        geo_img.save(fname, **save_params)
+        if os.path.exists(fname):
+            timeslot = to_unix_seconds(params['time'])
+            if not os.path.exists(rrd_fname):
+                rrdtool.create(rrd_fname,
+                               '--start', str(timeslot-1),
+                               '--step', '900',
+                               ['DS:messwert:GAUGE:900:U:U'],
+                               'RRA:MAX:0.5:1:96',
+                               'RRA:AVERAGE:0.5:96:90',
+                               'RRA:MAX:0.5:96:90',
+                               'RRA:MIN:0.5:96:90')
+            t1 = os.path.getmtime(params['uri'])
+            t2 = os.path.getmtime(fname)
+            try:
+                rrdtool.update(rrd_fname,
+                               str(timeslot)+':'+str(int(t2-t1)))
+            except Exception as e:
+                print "Could not update rrd file. ({0}): {1}".format(
+                    e.errno, e.str())
 
     def run(self, product_config, msg):
         """Process the data
@@ -296,16 +326,26 @@ class DataProcessor(object):
                                                            rule)
 
                 box_out_dir = self.out_boxes[rule['out_box_ref']]['output_dir']
-                fname = self.create_filename(rule['dest_filename'],
+                fname_pattern = rule['dest_filename']
+                fname = self.create_filename(fname_pattern,
                                              box_out_dir,
                                              params)
+
+                if not os.path.exists(self.rrd_dir):
+                    os.makedirs(self.rrd_dir)
+                rrd_fname = self.create_filename(re.sub(r"\{time.*\}",
+                                                        "xx",
+                                                        fname_pattern)+".rrd",
+                                                 self.rrd_dir,
+                                                 params)
 
                 # todo:  layouting etc
 
                 self.writer.write(self.save_img,
                                   geo_img,
                                   fname,
-                                  **self.get_save_arguments(params))
+                                  rrd_fname,
+                                  params)
 
             LOGGER.info('pr %.1f s', (time.time() - t1a))
 

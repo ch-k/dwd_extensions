@@ -104,8 +104,17 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 programs=nameserver,trollstalker,l2processor,postprocessor  ; each refers to 'x' in [program:x] definitions
 ;priority=999                  ; the relative start priority (default 999)
 
+; example eventlistener to demonstrate calling of maintenance scripts
+; like clean up of trollduction output files 
+[eventlistener:maintenancelistener]
+command=%SUPERVISOREVENTLAUNCHERPATH% "/bin/date > %LOGDIR%/time.log"
+events=TICK_60
+;stdout_logfile=%LOGDIR%/maintenancelistener-stdout.log
+stderr_logfile=%LOGDIR%/maintenancelistener-stderr.log
+
 ; The [include] section can just contain the "files" setting.  This
 ; setting can list multiple files (separated by whitespace or
 ; newlines).  It can also contain wildcards.  The filenames are
 ; interpreted as relative to this file.  Included files *cannot*
 ; include files themselves.
+
