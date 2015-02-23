@@ -41,8 +41,10 @@ import re
 import trollduction.helper_functions as helper_functions
 from trollsift import Parser
 import datetime
-import rrdtool
-import os.path
+try:
+    import rrdtool as rrd
+except ImportError:
+    rrd = None
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -263,28 +265,40 @@ class DataProcessor(object):
                                      mode=mode)
         return geo_img
 
+#     timeslot_counter = dict()
+
     def save_img(self, geo_img, fname, rrd_fname, params):
         save_params = self.get_save_arguments(params)
         geo_img.save(fname, **save_params)
-        if os.path.exists(fname):
-            timeslot = to_unix_seconds(params['time'])
-            if not os.path.exists(rrd_fname):
-                rrdtool.create(rrd_fname,
-                               '--start', str(timeslot-1),
+        if rrd is not None:
+            if os.path.exists(fname):
+                timeslot = to_unix_seconds(params['time'])
+#                 timeslot = to_unix_seconds(params['time']) \
+#                     + (self.timeslot_counter.setdefault(fname, 0)*15*60)
+#                 self.timeslot_counter[fname] += 1
+                if not os.path.exists(rrd_fname):
+                    rrd.create(rrd_fname,
+                               '--start', str(timeslot-900),
                                '--step', '900',
-                               ['DS:messwert:GAUGE:900:U:U'],
+                               ['DS:epi2product:GAUGE:900:U:U',
+                                'DS:timeslot2product:GAUGE:900:U:U'],
+                               'RRA:MAX:0.5:1:1',
                                'RRA:MAX:0.5:1:96',
                                'RRA:AVERAGE:0.5:96:90',
                                'RRA:MAX:0.5:96:90',
                                'RRA:MIN:0.5:96:90')
-            t1 = os.path.getmtime(params['uri'])
-            t2 = os.path.getmtime(fname)
-            try:
-                rrdtool.update(rrd_fname,
-                               str(timeslot)+':'+str(int(t2-t1)))
-            except Exception as e:
-                print "Could not update rrd file. ({0}): {1}".format(
-                    e.errno, e.str())
+                t_epi = os.path.getmtime(params['uri'])
+                t_product = os.path.getmtime(fname)
+                try:
+                    update_stmt = str(timeslot) +\
+                        ':'+str(int(t_product-t_epi)) +\
+                        ':'+str(int(t_product-timeslot))
+                    LOGGER.debug("rrd update %s %s" % (rrd_fname, update_stmt))
+                    rrd.update(rrd_fname, update_stmt)
+                except Exception as e:
+                    LOGGER.error("Could not update rrd file. ({0}".format(e))
+        else:
+            LOGGER.info("skipping rrd update (no rrdtool found)")
 
     def run(self, product_config, msg):
         """Process the data
@@ -426,7 +440,7 @@ class DataProcessor(object):
 
         if 'time' in params:
             t = params['time']
-            t_eos = t + datetime.timedelta(minutes=15)
+            t_eos = t + datetime.timedelta(minutes=15)  # @UndefinedVariable
             params['time_eos'] = t_eos
         else:
             print "no time key"
