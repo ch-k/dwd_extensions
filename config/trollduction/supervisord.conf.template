@@ -54,14 +54,11 @@ serverurl=unix:///tmp/pytroll-supervisord.sock ; use a unix:// URL  for a unix s
 ;prompt=mysupervisor         ; cmd line prompt (default "supervisor")
 ;history_file=~/.sc_history  ; use readline history if available
 
-; The below sample program section shows all possible program subsection values,
-; create one or more 'real' program: sections to be able to control them under
-; supervisor.
 
 [program:nameserver]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %NAMESERVERPATH% -v     
-;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+process_name=trollduction-nameserver
 priority=1                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
@@ -71,7 +68,7 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 [program:trollstalker]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION%    
-;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+process_name=trollduction-trollstalker
 priority=2                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
@@ -80,16 +77,26 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 [program:l2processor]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION%    
-;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+process_name=trollduction-l2processor-a
 priority=3                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+;[program:l2processor_b]
+;environment = PPP_CONFIG_DIR="/home/pytroll/pytroll_inst/config"
+;command=/home/pytroll/pytroll_inst/venv/bin/python /home/pytroll/pytroll_inst/venv/bin/l2processor.py -c /home/pytroll/pytroll_inst/config/trollduction/master_config.ini -C msg_hrit_b    
+;process_name=trollduction-l2processor-b
+;priority=3                  
+;startsecs=3
+;stdout_logfile=/home/pytroll/pytroll_inst/log/%(program_name)s-stdout.log
+;stderr_logfile=/home/pytroll/pytroll_inst/log/%(program_name)s-stderr.log
+
+
 [program:postprocessor]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %POSTPROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION%    
-;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+process_name=trollduction-postprocessor
 priority=4                  
 startsecs=3            
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
@@ -102,6 +109,7 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 [group:trollduction]
 programs=nameserver,trollstalker,l2processor,postprocessor  ; each refers to 'x' in [program:x] definitions
+;programs=nameserver,trollstalker,l2processor,l2processor_b,postprocessor
 ;priority=999                  ; the relative start priority (default 999)
 
 ; example eventlistener to demonstrate calling of maintenance scripts
@@ -109,12 +117,16 @@ programs=nameserver,trollstalker,l2processor,postprocessor  ; each refers to 'x'
 [eventlistener:maintenancelistener]
 command=%SUPERVISOREVENTLAUNCHERPATH% "/bin/date > %LOGDIR%/time.log"
 events=TICK_60
-;stdout_logfile=%LOGDIR%/maintenancelistener-stdout.log
-stderr_logfile=%LOGDIR%/maintenancelistener-stderr.log
 
-; The [include] section can just contain the "files" setting.  This
-; setting can list multiple files (separated by whitespace or
-; newlines).  It can also contain wildcards.  The filenames are
-; interpreted as relative to this file.  Included files *cannot*
-; include files themselves.
+[eventlistener:cleardisks]
+command=%SUPERVISOREVENTLAUNCHERPATH% "%TOOLSDIR%/evt_listener_clear_disk.sh > /dev/null"
+events=TICK_3600
+
+[eventlistener:creategraphs]
+command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_create_graphs.sh
+events=TICK_3600
+
+[eventlistener:checkproducts]
+command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_check_products.sh
+events=TICK_60
 

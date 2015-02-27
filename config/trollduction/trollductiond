@@ -18,7 +18,7 @@
 
 DAEMON=%PYTHONBINDIR%supervisord
 # BASE=`basename $DAEMON`
-PIDFILE=/tmp/pytroll-supervisord.pid
+PIDFILE=/tmp/trollduction-supervisord.pid
 CONFIGFILE=%CONFIGDIR%/trollduction/supervisord.conf
 LOGFILE=%LOGDIR%/supervisord.log
 
@@ -26,7 +26,7 @@ LOGFILE=%LOGDIR%/supervisord.log
 [ -x "$DAEMON" ] || exit 0
 
 start() {
-    echo -n "Starting supervisord: "
+    echo -n "Starting trollduction supervisord: "
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
         echo supervisord already running: $PID
@@ -40,21 +40,32 @@ start() {
 }
 
 stop() {
-    echo "Shutting down supervisord:"
+    echo "Shutting down trollduction supervisord:"
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
         ps -p $PID >/dev/null 2>&1
         if [ "$?" = 0 ]; then
-            echo "supervisord running, stopping.."
+            echo "trollduction supervisord running, stopping.."
             kill -SIGTERM $PID
-            exit 0
+            COUNTER=0
+            while [  $COUNTER -lt 10 ]; do
+                ps -p $PID >/dev/null 2>&1
+                if [ "$?" = 0 ]; then
+                    exit 0
+                fi
+                let COUNTER=COUNTER+1
+                sleep 5 
+                echo "\nwaiting another 5 seconds"
+            done
+            echo "\ncould not stop trollduction supervisord"
+            exit 2
         else
-            echo "pidfile exists ($PID), but supervisord not running"
+            echo "pidfile exists ($PIDFILE), but trollduction supervisord not running"
             exit 2
         fi
         rm $PIDFILE
     else
-        echo "supervisord not running"
+        echo "trollduction supervisord not running"
         exit 1
     fi
     #killproc -p $PIDFILE supervisord
@@ -66,14 +77,14 @@ status() {
         PID=`cat $PIDFILE`
         ps -p $PID >/dev/null 2>&1
         if [ "$?" = 0 ]; then
-            echo "supervisord running"
+            echo "trollduction supervisord running"
             exit 0
         else
-            echo "pidfile exists ($PID), but supervisord not running"
+            echo "pidfile exists ($PID), but trollduction supervisord not running"
             exit 2
         fi
     else
-        echo "supervisord not running"
+        echo "trollduction supervisord not running"
         exit 1
     fi
 }
@@ -93,7 +104,7 @@ case "$1" in
         status
         ;;
     *)
-        echo "Usage:  {start|stop|restart}"
+        echo "Usage:  {start|stop|restart|status}"
         exit 1
         ;;
 esac

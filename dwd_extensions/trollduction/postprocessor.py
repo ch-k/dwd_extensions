@@ -265,38 +265,66 @@ class DataProcessor(object):
                                      mode=mode)
         return geo_img
 
-#     timeslot_counter = dict()
 
     def save_img(self, geo_img, fname, rrd_fname, params):
         save_params = self.get_save_arguments(params)
         geo_img.save(fname, **save_params)
+
+        # writing performance data to rrd file
         if rrd is not None:
             if os.path.exists(fname):
-                timeslot = to_unix_seconds(params['time'])
-#                 timeslot = to_unix_seconds(params['time']) \
-#                     + (self.timeslot_counter.setdefault(fname, 0)*15*60)
-#                 self.timeslot_counter[fname] += 1
+                timeslot = to_unix_seconds(params['time_eos'])
                 if not os.path.exists(rrd_fname):
                     rrd.create(rrd_fname,
                                '--start', str(timeslot-900),
+                               # step size 900s=15min
+                               # each step represents one time slot
                                '--step', '900',
                                ['DS:epi2product:GAUGE:900:U:U',
                                 'DS:timeslot2product:GAUGE:900:U:U'],
                                'RRA:MAX:0.5:1:1',
+                               # keep 15 min max for 1 day
                                'RRA:MAX:0.5:1:96',
+                               # hourly average over 7 days
+                               'RRA:AVERAGE:0.5:4:168',
+                               # hourly maximum over 90 days
+                               'RRA:MAX:0.5:4:168',
+                               # hourly minimum over 90 days
+                               'RRA:MIN:0.5:4:168',
+                               # daily average over 90 days
                                'RRA:AVERAGE:0.5:96:90',
+                               # daily maximum over 90 days
                                'RRA:MAX:0.5:96:90',
+                               # daily minimum over 90 days
                                'RRA:MIN:0.5:96:90')
-                t_epi = os.path.getmtime(params['uri'])
-                t_product = os.path.getmtime(fname)
+
+                skip = False
                 try:
-                    update_stmt = str(timeslot) +\
-                        ':'+str(int(t_product-t_epi)) +\
-                        ':'+str(int(t_product-timeslot))
-                    LOGGER.debug("rrd update %s %s" % (rrd_fname, update_stmt))
-                    rrd.update(rrd_fname, update_stmt)
+                    t_epi = os.path.getmtime(params['uri'])
                 except Exception as e:
-                    LOGGER.error("Could not update rrd file. ({0}".format(e))
+                    LOGGER.error(
+                        "Could not read modification time of {0} ({1})".format(
+                            params['uri'], e))
+                    skip = True
+                try:
+                    t_product = os.path.getmtime(fname)
+                except Exception as e:
+                    LOGGER.error(
+                        "Could not read modification time of {0} ({1})".format(
+                            fname, e))
+                    skip = True
+
+                if skip is not False:
+                    try:
+                        update_stmt = str(timeslot) +\
+                            ':'+str(int(t_product-t_epi)) +\
+                            ':'+str(int(t_product-timeslot))
+                        LOGGER.debug(
+                            "rrd update %s %s" % (rrd_fname, update_stmt))
+                        rrd.update(rrd_fname, update_stmt)
+                    except Exception as e:
+                        LOGGER.error(
+                            "Could not update rrd file. ({0})".format(e))
         else:
             LOGGER.info("skipping rrd update (no rrdtool found)")
 
