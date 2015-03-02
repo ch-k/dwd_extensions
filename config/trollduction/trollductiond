@@ -51,7 +51,7 @@ stop() {
             while [  $COUNTER -lt 10 ]; do
                 ps -p $PID >/dev/null 2>&1
                 if [ "$?" = 0 ]; then
-                    exit 0
+                    return 0
                 fi
                 let COUNTER=COUNTER+1
                 sleep 5 
