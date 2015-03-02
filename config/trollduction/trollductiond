@@ -17,16 +17,23 @@
 ### END INIT INFO
 
 DAEMON=%PYTHONBINDIR%supervisord
+if [ -f "%PYTHONBINDIR%supervisord" ]; then
+    DAEMON=%PYTHONBINDIR%supervisord
+else
+    DAEMON=supervisord
+fi
+
 # BASE=`basename $DAEMON`
 PIDFILE=/tmp/trollduction-supervisord.pid
 CONFIGFILE=%CONFIGDIR%/trollduction/supervisord.conf
 LOGFILE=%LOGDIR%/supervisord.log
 
 # Exit if the package is not installed
-[ -x "$DAEMON" ] || exit 0
+command -v "$DAEMON" >/dev/null 2>&1 || { echo>&2 "$DAEMON does not exist. Aborting..."; exit 1;}
+
 
 start() {
-    echo -n "Starting trollduction supervisord: "
+    echo "Starting trollduction supervisord: "
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
         echo supervisord already running: $PID
@@ -50,14 +57,14 @@ stop() {
             COUNTER=0
             while [  $COUNTER -lt 10 ]; do
                 ps -p $PID >/dev/null 2>&1
-                if [ "$?" = 0 ]; then
+                if [ "$?" != 0 ]; then
                     return 0
                 fi
                 let COUNTER=COUNTER+1
-                sleep 5 
-                echo "\nwaiting another 5 seconds"
+                sleep 5
+                echo "waiting another 5 seconds"
             done
-            echo "\ncould not stop trollduction supervisord"
+            echo "could not stop trollduction supervisord"
             exit 2
         else
             echo "pidfile exists ($PIDFILE), but trollduction supervisord not running"
