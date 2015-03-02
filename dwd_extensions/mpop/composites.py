@@ -372,16 +372,9 @@ def dwd_RGB_12_12_1_N(self):
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data = self._dwd_get_alpha_channel().data
-        # copy data and reset masks to allow correct blending calculation
-        hrv_data_ = hrvc_chn.data.copy()
-        hrv_data_.mask = False
-        vis_data = self[0.635].data.copy()
-        vis_data.mask = False
-        ir108_data = self[10.8].data.copy()
-        ir108_data.mask = False
         # create day image
         day_img = self._dwd_create_RGB_image(
-            (hrv_data_, hrv_data_, vis_data, alpha_data),
+            (hrvc_chn.data, hrvc_chn.data, self[0.635].data, alpha_data),
             ((0, 100),
              (0, 100),
              (0, 100),
@@ -390,7 +383,7 @@ def dwd_RGB_12_12_1_N(self):
             inverse=(False, False, False, True), gamma=(1.3, 1.3, 1.3, 1.0))
         # create night image
         night_img = self._dwd_create_RGB_image(
-            (ir108_data, ir108_data, ir108_data, alpha_data),
+            (self[10.8].data, self[10.8].data, self[10.8].data, alpha_data),
             ((40, -87.5),
              (40, -87.5),
              (40, -87.5),
@@ -460,18 +453,9 @@ def dwd_RGB_12_12_9i_N(self):
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data = self._dwd_get_alpha_channel().data
-        # copy data and reset masks to allow correct blending calculation
-        hrvc_data = hrvc_chn.data.copy()
-        hrvc_data.mask = False
-        ir108_data = self[10.8].data.copy()
-        ir108_data.mask = False
-        ir039_data = self[3.75].data.copy()
-        ir039_data.mask = False
-        ir120_data = self[12.0].data.copy()
-        ir120_data.mask = False
         # create day image
         day_img = self._dwd_create_RGB_image(
-            (hrvc_data, hrvc_data, ir108_data, alpha_data),
+            (hrvc_chn.data, hrvc_chn.data, self[10.8].data, alpha_data),
             ((0, 100),
              (0, 100),
              (323 - CONVERSION, 203 - CONVERSION),
@@ -479,7 +463,7 @@ def dwd_RGB_12_12_9i_N(self):
         day_img.enhance(inverse=(False, False, False, True))
         # create night image
         night_img = self._dwd_create_RGB_image(
-            (ir039_data, ir108_data, ir120_data, alpha_data),
+            (self[3.75].data, self[10.8].data, self[12.0].data, alpha_data),
             ((40, -87.5),
              (40, -87.5),
              (40, -87.5),
