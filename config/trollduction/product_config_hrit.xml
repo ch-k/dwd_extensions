@@ -6,6 +6,7 @@
         </filename>
     </common>
     <area>
+        <process_num>0</process_num>
         <name>nq0001km</name>
         <definition>nq0001km</definition>
         <product>
@@ -15,6 +16,7 @@
         </product>
     </area>
     <area>
+        <process_num>0</process_num>
         <name>nq0003km</name>
         <definition>nq0003km</definition>
         <product>
@@ -74,6 +76,7 @@
         </product>
     </area>
     <area>
+        <process_num>0</process_num>
         <name>nqceur1km</name>
         <definition>nqceur1km</definition>
         <product>
@@ -83,6 +86,7 @@
         </product>
     </area>
     <area>
+        <process_num>1</process_num>
         <name>nqceur3km</name>
         <definition>nqceur3km</definition>
         <product>
@@ -142,6 +146,7 @@
         </product>
     </area>
     <area>
+        <process_num>1</process_num>
         <name>nqeuro1km</name>
         <definition>nqeuro1km</definition>
         <product>
@@ -161,6 +166,7 @@
         </product>
     </area>
     <area>
+        <process_num>1</process_num>
         <name>nqeuro3km</name>
         <definition>nqeuro3km</definition>
         <product>
