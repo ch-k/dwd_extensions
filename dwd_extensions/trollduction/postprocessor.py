@@ -314,7 +314,7 @@ class DataProcessor(object):
                             fname, e))
                     skip = True
 
-                if skip is not False:
+                if skip is False:
                     try:
                         update_stmt = str(timeslot) +\
                             ':'+str(int(t_product-t_epi)) +\
