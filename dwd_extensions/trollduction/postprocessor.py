@@ -21,6 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from logging.config import _resolve
 
 '''PostProcessor module
 
@@ -161,7 +162,7 @@ def read_tiff_with_gdal(filename):
     #
     # Fetching raster data
     #
-    bands_data = []
+    channels = []
     for i in xrange(1, dst.RasterCount + 1):
         band = dst.GetRasterBand(i)
         logger.info(
@@ -179,18 +180,18 @@ def read_tiff_with_gdal(filename):
         logger.info('fetched array: %s %s %s [%d -> %.2f -> %d]' %
                     (type(data), str(data.shape), data.dtype,
                      data.min(), data.mean(), data.max()))
-        bands_data.append(data)
 
-    # params = dict((('geotransform', geotransform),
-    #                ('projection', projection),
-    #                ('metadata', metadata)))
-
-    dst = None
-
-    channels = []
-    for data in bands_data:
         arr = np.array(data)  # @UndefinedVariable
-        channels.append(np.ma.array(arr[:, :] / 255.0))  # @UndefinedVariable
+        # @UndefinedVariable
+        if band.DataType == gdal.GDT_UInt32:
+            dtype = np.uint32  # @UndefinedVariable
+        elif band.DataType == gdal.GDT_UInt16:
+            dtype = np.uint16  # @UndefinedVariable
+        else:
+            dtype = np.uint8  # @UndefinedVariable
+        b = np.iinfo(dtype).max  # @UndefinedVariable
+        channels.append(
+            np.ma.array(arr[:, :] / float(b)))  # @UndefinedVariable
 
     return channels
 
@@ -264,7 +265,6 @@ class DataProcessor(object):
                                      fill_value=fill_value,
                                      mode=mode)
         return geo_img
-
 
     def save_img(self, geo_img, fname, rrd_fname, params):
         save_params = self.get_save_arguments(params)
@@ -360,7 +360,7 @@ class DataProcessor(object):
 
             # load image
             area = get_area_def(msg.data['areaname'])
-            geo_img = self.read_image(in_filename, area, msg.data['time'])
+            geo_img = self.read_image(in_filename, area, msg.data['time_eos'])
 
             # and apply each rule
             for rule in rules_to_apply:
@@ -419,27 +419,21 @@ class DataProcessor(object):
         if 'format' in rule:
             save_kwords['fformat'] = rule['format']
 
-        # check if a special physical unit is required
-        if 'physical_unit' in rule:
-            save_kwords['physic_unit'] = rule['physical_unit']
+        if 'format_params' in rule:
+            save_kwords.update(rule['format_params'])
 
-        # check if a specific ninjo product name is given
-        if 'ninjo_product' in rule:
-            save_kwords['ninjo_product_name'] = rule['ninjo_product']
-
-        # check if there is a satid is defined
-        if 'sat_id' in rule:
-            save_kwords['sat_id'] = rule['sat_id']
-
-        if 'compression' in rule:
-            save_kwords['compression'] = eval(rule['compression'])
-        else:
+        # set some defaults
+        if 'compression' not in save_kwords:
             save_kwords['compression'] = 6
 
-        if 'blocksize' in rule:
-            save_kwords['blocksize'] = eval(rule['blocksize'])
-        else:
+        if 'blocksize' not in save_kwords:
             save_kwords['blocksize'] = 0
+
+        if 'inv_def_temperature_cmap' not in save_kwords:
+            save_kwords['inv_def_temperature_cmap'] = False
+
+        if 'omit_filename_path' not in save_kwords:
+            save_kwords['omit_filename_path'] = True
 
         return save_kwords
 
@@ -457,7 +451,6 @@ class DataProcessor(object):
         '''
         params = dict((k, v) for k, v in msg.data.items())
         params.update(rule)
-        resolved_params = dict()
 
         # special addition to simplify rules
         if 'composite' in params:
@@ -473,11 +466,27 @@ class DataProcessor(object):
         else:
             print "no time key"
 
+        return self._resolve(params, params)
+#         resolved_params = dict()
+#         for k, v in params.items():
+#             # take only string parameters
+#             if isinstance(v, (str, unicode)):
+#                 par = Parser(v)
+#                 resolved_params[k] = par.compose(params)
+#             else:
+#                 resolved_params[k] = v
+#
+#         return resolved_params
+
+    def _resolve(self, params, ref_params):
+        resolved_params = dict()
         for k, v in params.items():
             # take only string parameters
             if isinstance(v, (str, unicode)):
                 par = Parser(v)
-                resolved_params[k] = par.compose(params)
+                resolved_params[k] = par.compose(ref_params)
+            elif isinstance(v, dict):
+                resolved_params[k] = self._resolve(v, ref_params)
             else:
                 resolved_params[k] = v
 
