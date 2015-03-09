@@ -65,7 +65,7 @@ def _dwd_create_single_channel_image(self, chn):
                               self.time_slot,
                               fill_value=0,
                               mode="L",
-                              crange=(-87.5, 40))
+                              crange=(40, -87.5))
 
 
 def _dwd_apply_sun_zenith_angle_correction(self, chn):
@@ -78,6 +78,21 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
         sun_zen_chn = self[chn].sunzen_corr(self.time_slot, limit=85.)
         self[chn].data = sun_zen_chn.data.copy()
         del(sun_zen_chn)
+
+
+def _dwd_apply_view_zenith_angle_correction(self, chn):
+    """Apply view zenith angle correction on non solar channel data.
+    """
+    if not self._is_solar_channel(chn) and \
+            self[chn].info.get("view_zen_corrected", None) is None:
+        view_zen_chn_data = self[self.area.name + "_VZA"].data
+        if view_zen_chn_data is not None:
+            view_zen_corr_chn = self[chn].viewzen_corr(view_zen_chn_data)
+            self[chn].data = view_zen_corr_chn.data.copy()
+            del(view_zen_corr_chn)
+        else:
+            LOGGER.error("Missing satellite zenith angle data: " +
+                         "atmospheric correction not possible.")
 
 
 def _dwd_kelvin_to_celsius(self, chn):
@@ -106,6 +121,7 @@ def _dwd_channel_preparation(self, *chn):
 
     for c in chn:
         self._dwd_apply_sun_zenith_angle_correction(c)
+        self._dwd_apply_view_zenith_angle_correction(c)
         self._dwd_kelvin_to_celsius(c)
         if self[c].info['units'] != 'C' and self[c].info['units'] != '%':
             result = False
@@ -556,6 +572,7 @@ dwd_ninjo_HRV.prerequisites = set(['HRV'])
 seviri = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
+    _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
     _dwd_get_hrvc_channel, _dwd_get_alpha_channel, _dwd_get_image_type,
     _dwd_create_RGB_image, dwd_ninjo_VIS006, dwd_ninjo_VIS008,
