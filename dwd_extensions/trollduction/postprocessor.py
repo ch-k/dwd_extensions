@@ -638,7 +638,6 @@ class PostProcessor(Minion):
         # more cleanup needed?
         self._loop = False
         self.data_processor.writer.stop()
-        self.data_processor._pub.stop()
         if self.config_watcher is not None:
             self.config_watcher.stop()
         if self.listener is not None:

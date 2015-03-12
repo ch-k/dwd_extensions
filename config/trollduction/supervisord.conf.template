@@ -82,17 +82,8 @@ priority=3
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stderr.log
-numprocs=2
+numprocs=3
 
-
-;[program:l2processor_b]
-;environment = PPP_CONFIG_DIR="/home/pytroll/pytroll_inst/config"
-;command=/home/pytroll/pytroll_inst/venv/bin/python /home/pytroll/pytroll_inst/venv/bin/l2processor.py -c /home/pytroll/pytroll_inst/config/trollduction/master_config.ini -C msg_hrit_b    
-;process_name=trollduction-l2processor-b
-;priority=3                  
-;startsecs=3
-;stdout_logfile=/home/pytroll/pytroll_inst/log/%(program_name)s-stdout.log
-;stderr_logfile=/home/pytroll/pytroll_inst/log/%(program_name)s-stderr.log
 
 
 [program:postprocessor]
