@@ -46,6 +46,7 @@ try:
     import rrdtool as rrd
 except ImportError:
     rrd = None
+from dwd_extensions.layout import LayoutHandler
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -233,6 +234,7 @@ class DataProcessor(object):
         self.rrd_dir = 'rrd'
         self.writer = DataWriter()
         self.writer.start()
+        self.layout_handler = None
 
     def set_config(self, product_config):
         self.product_config = product_config
@@ -246,7 +248,11 @@ class DataProcessor(object):
                     if key == 'out_box':
                         self.out_boxes[value['name']] = value
                     elif key == 'rule':
-                        self.rules.append(value)
+                        # in case of only one rule is defined
+                        if (isinstance(value, str)):
+                            self.rules.append(values)
+                        else:
+                            self.rules.append(value)
 
     def read_image(self, filename, area, timeslot):
         channels = read_tiff_with_gdal(filename)
@@ -328,13 +334,14 @@ class DataProcessor(object):
         else:
             LOGGER.info("skipping rrd update (no rrdtool found)")
 
-    def run(self, product_config, msg):
+    def run(self, product_config, msg, config_dir):
         """Process the data
         """
         LOGGER.info('New data available: %s', msg.data['product_filename'])
 
         self._data_ok = True
         self.set_config(product_config)
+        self.layout_handler = LayoutHandler(product_config, config_dir)
 
         in_filename = msg.data['product_filename']
         in_filename_base = os.path.basename(in_filename)
@@ -382,6 +389,10 @@ class DataProcessor(object):
                                                  params)
 
                 # todo:  layouting etc
+#                 try:
+#                     self.layout_handler.layout(geo_img, area)
+#                 except ValueError as e:
+#                     LOGGER.error("Layouting failed: " + str(e))
 
                 self.writer.write(self.save_img,
                                   geo_img,
@@ -674,6 +685,9 @@ class PostProcessor(Minion):
                 self.update_product_config(
                     self.td_config['product_config_file'],
                     self.td_config['config_item'])
-                self.data_processor.run(self.product_config, msg)
+                self.data_processor.run(
+                    self.product_config,
+                    msg,
+                    os.path.dirname(self.td_config['product_config_file']))
 #            else:
 #                LOGGER.debug("Message type was %s" % msg.type)
