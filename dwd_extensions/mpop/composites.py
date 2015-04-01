@@ -569,6 +569,122 @@ def dwd_ninjo_HRV(self):
 dwd_ninjo_HRV.prerequisites = set(['HRV'])
 
 
+def blend(ch1, ch2):
+    """Alpha blend *other* on top of the current image.
+    """
+    if ch1.mode != "LA" or ch2.mode != "LA":
+        raise ValueError("Images must be in LA")
+    src = ch2
+    dst = ch1
+    outa = src.channels[1] + dst.channels[1] * (1 - src.channels[1])
+    dst.channels[0] = (src.channels[0] * src.channels[1] +
+                       dst.channels[0] * dst.channels[1] *
+                       (1 - src.channels[1])) / outa
+    dst.channels[0][outa == 0] = 0
+    dst.channels[1] = outa
+
+
+def dwd_Fernsehbild(self):
+    """
+    """
+#     import dwd_extensions.mipp.hdf5.nwcsaf_msg as hdf5_  # @UnresolvedImport
+#     from mpop.satin import msg_hdf  # @UnresolvedImport
+#     self._data_holder.channels_to_load.add("CloudType")
+#     ct_area = msg_hdf.get_area_from_file("/home/ninjo-dev/pytroll-in/NWCSAF/SAFNWC_MSG3_CT___201503240730_EUROPE_B____.h5")
+#     coverage = mpop.projector.Projector(ct_area,
+#                                         self.area,
+#                                         mode='nearest',
+#                                         radius=10000,
+#                                         nprocs=1)
+# 
+#     hdf5_.load(self._data_holder, area_extent=ct_area.area_extent)
+#    ct_chn = self["CloudType"]
+#    ct_chn = ct_chn.project(coverage)
+    ct_chn = self["CloudType"]
+    ct_data = ct_chn.cloudtype
+    ct_mask = np.ones(ct_data.shape, dtype=bool)
+    ct_mask[((ct_data >= 5) & (ct_data <= 18))] = False
+    # mask already masked data
+    ct_mask[ct_data.mask] = True
+
+    self.check_channels("HRV", 0.85, 10.8)
+
+    if not self._dwd_channel_preparation("HRV", 0.85, 10.8):
+        return None
+
+    # get combination of HRV and VIS008 channel data
+    hrvc_chn = self._dwd_get_hrvc_channel()
+
+    img_type = self._dwd_get_image_type()
+    if img_type is None:
+        return None
+
+    # extract the clouds for hrvis channel
+    hrvc_clouds = hrvc_chn.data.copy()
+    hrvc_clouds.mask[ct_mask] = True
+    # use the difference of median and mean to
+    # get the last value of the color range
+    median = np.ma.median(hrvc_clouds)
+    mean = np.ma.mean(hrvc_clouds)
+    comp = hrvc_clouds.compressed()
+    max_value = np.percentile(comp, 97)
+    LOGGER.debug("HRVIS median: {:f}, mean: {:f}, diff: {:f}, max_value: {:f}".
+                 format(median, mean, abs(median - mean), max_value))
+
+    day_img = geo_image.GeoImage(hrvc_clouds,
+                                 self.area,
+                                 self.time_slot,
+                                 fill_value=0,
+                                 mode="L")
+    day_img.enhance(stretch="histogram")
+#    return day_img
+
+    # extract the clouds for infrared channel
+    ir_clouds = self[10.8].data.copy()
+    ir_clouds.mask[ct_mask] = True
+
+    # use the difference of median and mean to
+    # get the last value of the color range
+    median = np.ma.median(ir_clouds)
+    mean = np.ma.mean(ir_clouds)
+#    comp = ir_clouds.compressed()
+    max_value = np.ma.max(ir_clouds)
+    LOGGER.debug("HRVIS median: {:f}, mean: {:f}, diff: {:f}, max_value: {:f}".
+                 format(median, mean, abs(median - mean), max_value))
+
+    median = np.ma.median(ir_clouds)
+    night_img = geo_image.GeoImage(ir_clouds,
+                                   self.area,
+                                   self.time_slot,
+                                   fill_value=0,
+                                   mode="L",
+                                   crange=(max_value, np.ma.min(ir_clouds)))
+#    return night_img
+
+    if img_type == IMAGETYPES.DAY_ONLY:
+        img = day_img
+
+    if img_type == IMAGETYPES.NIGHT_ONLY:
+        img = night_img
+
+    if img_type == IMAGETYPES.DAY_NIGHT:
+        alpha_data =\
+            self._dwd_get_alpha_channel().data.astype(np.float64)/255.0
+        # create day image
+        day_img.putalpha(alpha_data)
+        day_img.enhance(inverse=(False, True))
+        # create night image
+        night_img.putalpha(alpha_data)
+        blend(night_img, day_img)
+        img = night_img
+        img.convert("L")
+
+    return img
+
+dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
+
+
+
 seviri = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
@@ -579,4 +695,4 @@ seviri = [
     dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
     dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
-    dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N]
+    dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild]
