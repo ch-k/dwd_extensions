@@ -628,7 +628,7 @@ def dwd_Fernsehbild(self):
     mean = np.ma.mean(hrvc_clouds)
     comp = hrvc_clouds.compressed()
     max_value = np.percentile(comp, 97)
-    LOGGER.debug("HRVIS median: {:f}, mean: {:f}, diff: {:f}, max_value: {:f}".
+    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, max_value: {3}".
                  format(median, mean, abs(median - mean), max_value))
 
     day_img = geo_image.GeoImage(hrvc_clouds,
@@ -649,7 +649,7 @@ def dwd_Fernsehbild(self):
     mean = np.ma.mean(ir_clouds)
 #    comp = ir_clouds.compressed()
     max_value = np.ma.max(ir_clouds)
-    LOGGER.debug("HRVIS median: {:f}, mean: {:f}, diff: {:f}, max_value: {:f}".
+    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, max_value: {3}".
                  format(median, mean, abs(median - mean), max_value))
 
     median = np.ma.median(ir_clouds)
