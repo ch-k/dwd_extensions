@@ -607,6 +607,11 @@ def dwd_Fernsehbild(self):
     # mask already masked data
     ct_mask[ct_data.mask] = True
 
+    # smooth mask with gaussian filter with sigma 2
+    # import scipy.ndimage as ndi
+    # ct_mask =
+    #     np.array(ndi.gaussian_filter(ct_mask.astype('float64'), 2) > 0.1)
+
     self.check_channels("HRV", 0.85, 10.8)
 
     if not self._dwd_channel_preparation("HRV", 0.85, 10.8):

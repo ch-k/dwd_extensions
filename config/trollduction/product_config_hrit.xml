@@ -245,6 +245,17 @@
             <filename>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
     </area>
+    
+    <area>
+        <process_num>3</process_num>
+        <name>nqeuro3km</name>
+        <definition>nqeuro3km</definition>
+        <product>
+            <composite>dwd_Fernsehbild</composite>
+            <name>Fernsehbild</name>
+            <filename>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
+        </product>
+    </area>
 
     <post_processing>
         <rrd_dir id="post_processing_rrd_dir">rrd</rrd_dir>
@@ -483,6 +494,7 @@
                 <ninjo_product_name>msg_dust</ninjo_product_name>
             </format_params>
         </rule>
+        
         <rule>
             <input_pattern>.*Fernsehbild.*</input_pattern>
             <rule_group>ninjo</rule_group>

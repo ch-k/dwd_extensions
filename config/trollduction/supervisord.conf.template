@@ -82,7 +82,7 @@ priority=3
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stderr.log
-numprocs=3
+numprocs=4
 
 
 
