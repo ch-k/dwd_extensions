@@ -239,6 +239,11 @@
             <name>RGB-Staub</name>
             <filename>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
+        <product>
+            <composite>dwd_Fernsehbild</composite>
+            <name>Fernsehbild</name>
+            <filename>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
+        </product>
     </area>
 
     <post_processing>
@@ -478,6 +483,21 @@
                 <ninjo_product_name>msg_dust</ninjo_product_name>
             </format_params>
         </rule>
+        <rule>
+            <input_pattern>.*Fernsehbild.*</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>Fernsehbild_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
+            <format_params>
+                <ninjo_product_name>IR_108</ninjo_product_name>
+                <sat_id>6900014</sat_id>
+                <chan_id>18200015</chan_id>
+                <data_cat>GPRN</data_cat>
+                <ch_min>0</ch_min>
+                <ch_max>255</ch_max>
+            </format_params>
+        </rule>      
 
         <!-- quicklook -->
 
