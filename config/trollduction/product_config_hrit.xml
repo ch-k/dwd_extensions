@@ -239,11 +239,6 @@
             <name>RGB-Staub</name>
             <filename>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
-        <product>
-            <composite>dwd_Fernsehbild</composite>
-            <name>Fernsehbild</name>
-            <filename>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
-        </product>
     </area>
     
     <area>
