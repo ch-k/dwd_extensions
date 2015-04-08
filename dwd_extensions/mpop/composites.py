@@ -743,9 +743,6 @@ def hist_equalize(data, val_min, val_max):
     data_min = np.ma.min(data)
     data_max = np.ma.max(data)
     scaled = ((data - data_min)/(data_max - data_min))*255
-    # set value range for histogram
-    val_min = 8
-    val_max = 254
     hist_length = val_max - val_min + 1
     # mask values outside of the range
     scaled = np.ma.masked_outside(scaled, val_min, val_max)
