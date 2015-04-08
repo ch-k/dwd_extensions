@@ -636,12 +636,13 @@ def dwd_Fernsehbild(self):
     LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, max_value: {3}".
                  format(median, mean, abs(median - mean), max_value))
 
-    day_img = geo_image.GeoImage(hrvc_clouds,
+    day_img = geo_image.GeoImage(hist_equalize(hrvc_clouds),
                                  self.area,
                                  self.time_slot,
                                  fill_value=0,
-                                 mode="L")
-    day_img.enhance(stretch="histogram")
+                                 mode="L",
+                                 crange=(0, 255))
+#    day_img.enhance(stretch="histogram")
 #    return day_img
 
     # extract the clouds for infrared channel
@@ -658,13 +659,14 @@ def dwd_Fernsehbild(self):
                  format(median, mean, abs(median - mean), max_value))
 
     median = np.ma.median(ir_clouds)
-    night_img = geo_image.GeoImage(ir_clouds,
+    night_img = geo_image.GeoImage(hist_equalize(ir_clouds),
                                    self.area,
                                    self.time_slot,
                                    fill_value=0,
                                    mode="L",
-                                   crange=(max_value, np.ma.min(ir_clouds)))
-#    return night_img
+                                   crange=(255, 0))
+#    night_img.enhance(stretch="histogram")
+    #    return night_img
 
     if img_type == IMAGETYPES.DAY_ONLY:
         img = day_img
@@ -688,6 +690,83 @@ def dwd_Fernsehbild(self):
 
 dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
+
+def hist_equalize(data):
+#     /**
+#    * Computes the histogram equalization of the specified integer array
+#    * with respect to the specified minimum and maximum value.
+#    * @param arr The array to be equalized.
+#    * @param min The minimum value.
+#    * @param max The maximum value.
+#    * @return The equalized input integer array.
+#    * @nflfunction equalize
+#    */
+#   public static IntegerArrayValue equalize(IntegerArrayValue arr, int min, int max) {
+#     // compute histogram for given range
+#     int histLength = max - min + 1;
+#     int hist[] = new int [histLength];
+#     ArrayIterator iter = arr.iterator(1);
+#     int length = iter.getLength()[0];
+#     int total = 0;
+#    
+#  while (iter.hasNext()) {
+#       int value[] = (int[]) iter.next();
+#       for (int k = length-1; k >= 0; k--) {
+#         int val = value[k];
+#         if (min <= val && val <= max) {
+#           hist[val-min]++;
+#           total++;
+#         }
+#       }
+#     }
+# 
+#     // compute equalize lookup table
+#     int lut[] = new int [max-min+1];
+#     int sum = 0;
+#     float factor = (float)(max-min)/(total - hist[0]);
+#     lut[0] = min;
+#     for (int k = 1; k < histLength; k++) {
+#       sum += hist[k];
+#       lut[k] = (int) (sum*factor + min + 0.5f);
+#     }
+#     // perform equalization
+#     iter = arr.iterator(1);
+#     while (iter.hasNext()) {
+#       int value[] = (int[]) iter.next();
+#       for (int k = length-1; k >= 0; k--) {
+#         int val = value[k];
+#         if (min <= val && val <= max) {
+#           value[k] = lut[val-min];
+#         }
+#       }
+#     }
+#     return arr;
+#   }
+
+    # map data values to range 0..255
+    data_min = np.ma.min(data)
+    data_max = np.ma.max(data)
+    scaled = ((data - data_min)/(data_max - data_min))*255
+    # set value range for histogram
+    val_min = 8
+    val_max = 254
+    hist_length = val_max - val_min + 1
+    # mask values outside of the range
+    scaled = np.ma.masked_outside(scaled, val_min, val_max)
+    c_scaled = np.ma.compressed(scaled)
+    # create histogram and calculate cumulative distributive function
+    hist, bins = np.histogram(c_scaled, hist_length)
+    cdf = hist.cumsum()
+    # create lookup table
+    factor = (val_max - val_min)*1.0/(cdf[-1] - cdf[0])*1.0
+    lut = (cdf - cdf[0])*factor + val_min + 0.5
+    lut = lut.astype('uint8')
+    # apply lookup table values
+    scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - val_min]
+    # set mask to the incoming one
+    scaled.mask = data.mask
+
+    return scaled
 
 
 seviri = [
