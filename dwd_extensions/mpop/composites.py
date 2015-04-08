@@ -627,46 +627,42 @@ def dwd_Fernsehbild(self):
     # extract the clouds for hrvis channel
     hrvc_clouds = hrvc_chn.data.copy()
     hrvc_clouds.mask[ct_mask] = True
-    # use the difference of median and mean to
-    # get the last value of the color range
+
     median = np.ma.median(hrvc_clouds)
     mean = np.ma.mean(hrvc_clouds)
     comp = hrvc_clouds.compressed()
     max_value = np.percentile(comp, 97)
-    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, max_value: {3}".
-                 format(median, mean, abs(median - mean), max_value))
+    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, min: {3}, max: {4}".
+                 format(median, mean, abs(median - mean),
+                        hrvc_clouds.min(), max_value))
 
-    day_img = geo_image.GeoImage(hist_equalize(hrvc_clouds),
+    day_img = geo_image.GeoImage(hist_equalize(hrvc_clouds, 8, 254),
                                  self.area,
                                  self.time_slot,
                                  fill_value=0,
                                  mode="L",
                                  crange=(0, 255))
 #    day_img.enhance(stretch="histogram")
-#    return day_img
 
     # extract the clouds for infrared channel
     ir_clouds = self[10.8].data.copy()
     ir_clouds.mask[ct_mask] = True
 
-    # use the difference of median and mean to
-    # get the last value of the color range
     median = np.ma.median(ir_clouds)
     mean = np.ma.mean(ir_clouds)
-#    comp = ir_clouds.compressed()
     max_value = np.ma.max(ir_clouds)
-    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, max_value: {3}".
-                 format(median, mean, abs(median - mean), max_value))
+    LOGGER.debug("IR median: {0}, mean: {1}, diff: {2}, min: {3}, max: {4}".
+                 format(median, mean, abs(median - mean),
+                        ir_clouds.min(), max_value))
 
     median = np.ma.median(ir_clouds)
-    night_img = geo_image.GeoImage(hist_equalize(ir_clouds),
+    night_img = geo_image.GeoImage(hist_equalize(ir_clouds, 8, 254),
                                    self.area,
                                    self.time_slot,
                                    fill_value=0,
                                    mode="L",
                                    crange=(255, 0))
 #    night_img.enhance(stretch="histogram")
-    #    return night_img
 
     if img_type == IMAGETYPES.DAY_ONLY:
         img = day_img
@@ -691,7 +687,7 @@ def dwd_Fernsehbild(self):
 dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
 
-def hist_equalize(data):
+def hist_equalize(data, val_min, val_max):
 #     /**
 #    * Computes the histogram equalization of the specified integer array
 #    * with respect to the specified minimum and maximum value.
