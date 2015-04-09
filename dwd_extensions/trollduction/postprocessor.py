@@ -555,6 +555,7 @@ class PostProcessor(Minion):
         LOGGER.debug("Minion should be starting now")
         Minion.__init__(self)
 
+        self.stop_called = False
         self.td_config = None
         self.product_config = None
         self.listener = None
@@ -648,17 +649,24 @@ class PostProcessor(Minion):
 
         # more cleanup needed?
         self._loop = False
-        self.data_processor.writer.stop()
+        if self.data_processor is not None:
+            self.data_processor.writer.stop()
         if self.config_watcher is not None:
             self.config_watcher.stop()
+            self.config_watcher = None
         if self.listener is not None:
             self.listener.stop()
+            self.listener = None
+        if self.data_processor is not None:
+            self.data_processor = None
 
     def stop(self):
         """Stop running.
         """
-        self.cleanup()
-        Minion.stop(self)
+        if self.stop_called is False:
+            self.stop_called = True
+            self.cleanup()
+            Minion.stop(self)
 
     def shutdown(self):
         '''Shutdown trollduction.

@@ -97,9 +97,12 @@ if __name__ == '__main__':
     pp = PostProcessor(cfg)
 
     def shutdown(*args):
+        print "starting shutdown procedure"
         del args
         pp.shutdown()
         logging.shutdown()
+        print "shutdown procedure finished"
+        os._exit(0)
 
     signal.signal(signal.SIGTERM, shutdown)
 
@@ -107,7 +110,7 @@ if __name__ == '__main__':
     try:
         pp.run_single()
     except KeyboardInterrupt:
-        logging.shutdown()
+        shutdown()
 
     print "Thank you for using pytroll/postprocessor!" \
         "See you soon on pytroll.org."
