@@ -250,6 +250,17 @@
             <name>Fernsehbild</name>
             <filename>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
         </product>
+        <product>
+            <composite>dwd_FernsehbildRGBA</composite>
+            <composite_params>
+                <ct_alpha>[0.0, ] * 4 + [1.0, ] * 11 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
+                <erosion_size>5</erosion_size>
+                <gaussion_filter_sigma>3</gaussion_filter_sigma>
+                <dark_transparency_factor>3.0</dark_transparency_factor>
+            </composite_params>
+            <name>FernsehbildRGBA</name>
+            <filename>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
+        </product>
     </area>
 
     <post_processing>
@@ -491,10 +502,24 @@
         </rule>
         
         <rule>
+            <input_pattern>.*FernsehbildRGBA.*</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
+            <format_params>
+                <ninjo_product_name>IR_108</ninjo_product_name>
+                <sat_id>6900014</sat_id>
+                <chan_id>18200015</chan_id>
+                <data_cat>GPRN</data_cat>
+            </format_params>
+        </rule>
+        
+        <rule>
             <input_pattern>.*Fernsehbild.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>Fernsehbild_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <format_params>
                 <ninjo_product_name>IR_108</ninjo_product_name>
@@ -507,13 +532,14 @@
         </rule>      
 
         <!-- quicklook -->
-
+        <!-- 
         <rule>
-            <input_pattern>bla.*</input_pattern>
+            <input_pattern>dummy.*</input_pattern>
             <dest_filename>{platform}{satnumber}_{composite}_{areaname}_ql_{time_eos:%Y%m%d%H%M}.gif</dest_filename>
             <out_box_ref>browser</out_box_ref>
             <layout>quicklook</layout>
         </rule>
+         -->
     </post_processing>
 
 </product_config>

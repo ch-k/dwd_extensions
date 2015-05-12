@@ -261,6 +261,13 @@ class DataProcessor(object):
         if len(channels) == 1:
             mode = "L"
             fill_value = (0)
+        elif len(channels) == 4:
+            # channels = channels[:-1]
+            # mode = "RGB"
+            # fill_value = (0, 0, 0)
+
+            mode = "RGBA"
+            fill_value = (0, 0, 0, 0)
         else:
             mode = "RGB"
             fill_value = (0, 0, 0)

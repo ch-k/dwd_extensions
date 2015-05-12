@@ -687,57 +687,197 @@ def dwd_Fernsehbild(self):
 dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
 
+def _create_fernsehbild_rgba(self, ct_alpha_def,
+                             erosion_size = 5, gaussion_filter_sigma = 3,
+                             dark_transparency_factor = 3.0 ):
+    """
+    """
+    ct_chn = self["CloudType"]
+    ct_data = ct_chn.cloudtype
+
+    ct_alpha = np.ones(ct_data.shape)
+    for ct in range(len(ct_alpha_def)):
+        if ct_alpha_def[ct] < 1.0:
+            ct_alpha[(ct_data == ct)] = ct_alpha_def[ct]
+
+    # mask already masked data
+    ct_alpha[ct_data.mask] = 0.0
+    ct_mask = ct_alpha < 0.01
+
+    # shrink alpha mask to ensure that smoothed edges are inside mask
+    import scipy.ndimage as ndi
+    ct_alpha = ndi.grey_erosion(ct_alpha, size=(erosion_size, erosion_size)).astype(ct_alpha.dtype)
+
+    self.check_channels("HRV", 0.85, 10.8)
+
+    if not self._dwd_channel_preparation("HRV", 0.85, 10.8):
+        return None
+
+    # get combination of HRV and VIS008 channel data
+    hrvc_chn = self._dwd_get_hrvc_channel()
+
+    img_type = self._dwd_get_image_type()
+    if img_type is None:
+        return None
+
+    # extract the clouds for hrvis channel
+    hrvc_clouds = hrvc_chn.data.copy()
+    hrvc_clouds.mask[ct_mask] = True
+
+    median = np.ma.median(hrvc_clouds)
+    mean = np.ma.mean(hrvc_clouds)
+    comp = hrvc_clouds.compressed()
+    max_value = np.percentile(comp, 97)
+    LOGGER.debug("HRVIS median: {0}, mean: {1}, diff: {2}, min: {3}, max: {4}".
+                 format(median, mean, abs(median - mean),
+                        hrvc_clouds.min(), max_value))
+
+    d = hist_equalize(hrvc_clouds, 8, 254)
+    d.mask = False
+    day_img = geo_image.GeoImage(d,
+                                 self.area,
+                                 self.time_slot,
+                                 fill_value=0,
+                                 mode="L",
+                                 crange=(0, 255))
+#    day_img.enhance(stretch="histogram")
+
+    # extract the clouds for infrared channel
+    ir_clouds = self[10.8].data.copy()
+    ir_clouds.mask[ct_mask] = True
+
+    median = np.ma.median(ir_clouds)
+    mean = np.ma.mean(ir_clouds)
+    max_value = np.ma.max(ir_clouds)
+    LOGGER.debug("IR median: {0}, mean: {1}, diff: {2}, min: {3}, max: {4}".
+                 format(median, mean, abs(median - mean),
+                        ir_clouds.min(), max_value))
+
+    median = np.ma.median(ir_clouds)
+    d = hist_equalize(ir_clouds, 8, 254)
+    d.mask = False
+    night_img = geo_image.GeoImage(d,
+                                   self.area,
+                                   self.time_slot,
+                                   fill_value=0,
+                                   mode="L",
+                                   crange=(255, 0))
+#    night_img.enhance(stretch="histogram")
+
+    if img_type == IMAGETYPES.DAY_ONLY:
+        img = day_img
+
+    if img_type == IMAGETYPES.NIGHT_ONLY:
+        img = night_img
+
+    if img_type == IMAGETYPES.DAY_NIGHT:
+        alpha_data =\
+            self._dwd_get_alpha_channel().data.astype(np.float64)/255.0
+        # create day image
+        day_img.putalpha(alpha_data)
+        day_img.enhance(inverse=(False, True))
+        # create night image
+        night_img.putalpha(alpha_data)
+        blend(night_img, day_img)
+        img = night_img
+        img.convert("L")
+
+    if gaussion_filter_sigma is not None:
+        # smooth alpha channel
+        ct_alpha = ndi.gaussian_filter(ct_alpha, gaussion_filter_sigma)
+        
+    if dark_transparency_factor is not None:
+        # add transparency to dark image areas
+        ct_alpha = np.minimum(ct_alpha, img.channels[0] *
+                              dark_transparency_factor)
+
+    img.convert("RGBA")
+    img.putalpha(ct_alpha)
+    img.fill_value = None
+
+
+#     img = geo_image.GeoImage(ct_alpha*255.0,
+#                                  self.area,
+#                                  self.time_slot,
+#                                  fill_value=0,
+#                                  mode="L",
+#                                  crange=(0, 255))
+
+    return img
+
+
+def dwd_FernsehbildRGBA(self, ct_alpha = None,
+                        erosion_size = None,
+                        gaussion_filter_sigma = None,
+                        dark_transparency_factor = 3.0):
+    """
+    """
+    if ct_alpha is None:
+        ct_alpha = np.ones(21, dtype=np.float64)
+        ct_alpha[0:4] = 0.0
+        ct_alpha[15] = 0.0
+        ct_alpha[19] = 0.3
+        ct_alpha[20] = 0.0
+
+    return self._create_fernsehbild_rgba(ct_alpha,
+                                         erosion_size,
+                                         gaussion_filter_sigma,
+                                         dark_transparency_factor)
+
+dwd_FernsehbildRGBA.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
+
+
 def hist_equalize(data, val_min, val_max):
-#     /**
-#    * Computes the histogram equalization of the specified integer array
-#    * with respect to the specified minimum and maximum value.
-#    * @param arr The array to be equalized.
-#    * @param min The minimum value.
-#    * @param max The maximum value.
-#    * @return The equalized input integer array.
-#    * @nflfunction equalize
-#    */
-#   public static IntegerArrayValue equalize(IntegerArrayValue arr, int min, int max) {
-#     // compute histogram for given range
-#     int histLength = max - min + 1;
-#     int hist[] = new int [histLength];
-#     ArrayIterator iter = arr.iterator(1);
-#     int length = iter.getLength()[0];
-#     int total = 0;
-#    
-#  while (iter.hasNext()) {
-#       int value[] = (int[]) iter.next();
-#       for (int k = length-1; k >= 0; k--) {
-#         int val = value[k];
-#         if (min <= val && val <= max) {
-#           hist[val-min]++;
-#           total++;
-#         }
-#       }
-#     }
-# 
-#     // compute equalize lookup table
-#     int lut[] = new int [max-min+1];
-#     int sum = 0;
-#     float factor = (float)(max-min)/(total - hist[0]);
-#     lut[0] = min;
-#     for (int k = 1; k < histLength; k++) {
-#       sum += hist[k];
-#       lut[k] = (int) (sum*factor + min + 0.5f);
-#     }
-#     // perform equalization
-#     iter = arr.iterator(1);
-#     while (iter.hasNext()) {
-#       int value[] = (int[]) iter.next();
-#       for (int k = length-1; k >= 0; k--) {
-#         int val = value[k];
-#         if (min <= val && val <= max) {
-#           value[k] = lut[val-min];
-#         }
-#       }
-#     }
-#     return arr;
-#   }
+    #     /**
+    #    * Computes the histogram equalization of the specified integer array
+    #    * with respect to the specified minimum and maximum value.
+    #    * @param arr The array to be equalized.
+    #    * @param min The minimum value.
+    #    * @param max The maximum value.
+    #    * @return The equalized input integer array.
+    #    * @nflfunction equalize
+    #    */
+    #   public static IntegerArrayValue equalize(IntegerArrayValue arr, int min, int max) {
+    #     // compute histogram for given range
+    #     int histLength = max - min + 1;
+    #     int hist[] = new int [histLength];
+    #     ArrayIterator iter = arr.iterator(1);
+    #     int length = iter.getLength()[0];
+    #     int total = 0;
+    #    
+    #  while (iter.hasNext()) {
+    #       int value[] = (int[]) iter.next();
+    #       for (int k = length-1; k >= 0; k--) {
+    #         int val = value[k];
+    #         if (min <= val && val <= max) {
+    #           hist[val-min]++;
+    #           total++;
+    #         }
+    #       }
+    #     }
+    # 
+    #     // compute equalize lookup table
+    #     int lut[] = new int [max-min+1];
+    #     int sum = 0;
+    #     float factor = (float)(max-min)/(total - hist[0]);
+    #     lut[0] = min;
+    #     for (int k = 1; k < histLength; k++) {
+    #       sum += hist[k];
+    #       lut[k] = (int) (sum*factor + min + 0.5f);
+    #     }
+    #     // perform equalization
+    #     iter = arr.iterator(1);
+    #     while (iter.hasNext()) {
+    #       int value[] = (int[]) iter.next();
+    #       for (int k = length-1; k >= 0; k--) {
+    #         int val = value[k];
+    #         if (min <= val && val <= max) {
+    #           value[k] = lut[val-min];
+    #         }
+    #       }
+    #     }
+    #     return arr;
+    #   }
 
     # map data values to range 0..255
     data_min = np.ma.min(data)
@@ -772,4 +912,5 @@ seviri = [
     dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
     dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
-    dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild]
+    dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild,
+    dwd_FernsehbildRGBA, _create_fernsehbild_rgba]
