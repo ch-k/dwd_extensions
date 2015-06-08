@@ -722,7 +722,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     # extract the clouds for hrvis channel
     hrvc_clouds = hrvc_chn.data.copy()
-    hrvc_clouds.mask[ct_mask] = True
+    # hrvc_clouds.mask[ct_mask] = True
 
     median = np.ma.median(hrvc_clouds)
     mean = np.ma.mean(hrvc_clouds)
@@ -744,7 +744,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     # extract the clouds for infrared channel
     ir_clouds = self[10.8].data.copy()
-    ir_clouds.mask[ct_mask] = True
+    # ir_clouds.mask[ct_mask] = True
 
     median = np.ma.median(ir_clouds)
     mean = np.ma.mean(ir_clouds)
