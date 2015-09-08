@@ -269,7 +269,7 @@
                 <erosion_size>None</erosion_size>
                 <gaussion_filter_sigma>2</gaussion_filter_sigma>
                 <dark_transparency_factor>2</dark_transparency_factor>
-                <contrast_optimization_expr>"hist_equalize_v3(inputdata, 8, 254)"</contrast_optimization_expr>
+                <contrast_optimization_expr>"hist_equalize_v3(inputdata)"</contrast_optimization_expr>
             </composite_params>
             <name>FernsehbildRGBA_contrast_optim_fortran</name>
             <filename>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim_fortran.tif</filename>
