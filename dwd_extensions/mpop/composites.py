@@ -200,8 +200,9 @@ def _dwd_get_alpha_channel(self):
         alpha = np.ma.zeros(data.shape, dtype=np.int)
         y, x = np.where(
             (data <= SUN_ZEN_NIGHT_LIMIT) & (data >= SUN_ZEN_DAY_LIMIT))
-        alpha[y, x] = ((data[y, x] - SUN_ZEN_DAY_LIMIT) /
-                       (SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT))*(254 - 1) + 1
+        alpha[y, x] = (((data[y, x] - SUN_ZEN_DAY_LIMIT) /
+                       (SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT)) *
+                       (254 - 1) + 1)
         alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] += 255
         alpha_chn = Channel(name="ALPHA",
                             data=alpha)
@@ -587,16 +588,17 @@ def blend(ch1, ch2):
 def dwd_Fernsehbild(self):
     """
     """
-#     import dwd_extensions.mipp.hdf5.nwcsaf_msg as hdf5_  # @UnresolvedImport
-#     from mpop.satin import msg_hdf  # @UnresolvedImport
+# import dwd_extensions.mipp.hdf5.nwcsaf_msg as hdf5_  # @UnresolvedImport
+# from mpop.satin import msg_hdf  # @UnresolvedImport
 #     self._data_holder.channels_to_load.add("CloudType")
-#     ct_area = msg_hdf.get_area_from_file("/home/ninjo-dev/pytroll-in/NWCSAF/SAFNWC_MSG3_CT___201503240730_EUROPE_B____.h5")
+#         ct_area = msg_hdf.get_area_from_file(
+#             "/home/ninjo-dev/pytroll-in/NWCSAF/SAFNWC_MSG3_CT___201503240730_EUROPE_B____.h5")
 #     coverage = mpop.projector.Projector(ct_area,
 #                                         self.area,
 #                                         mode='nearest',
 #                                         radius=10000,
 #                                         nprocs=1)
-# 
+#
 #     hdf5_.load(self._data_holder, area_extent=ct_area.area_extent)
 #    ct_chn = self["CloudType"]
 #    ct_chn = ct_chn.project(coverage)
@@ -672,7 +674,7 @@ def dwd_Fernsehbild(self):
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data =\
-            self._dwd_get_alpha_channel().data.astype(np.float64)/255.0
+            self._dwd_get_alpha_channel().data.astype(np.float64) / 255.0
         # create day image
         day_img.putalpha(alpha_data)
         day_img.enhance(inverse=(False, True))
@@ -688,10 +690,14 @@ dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
 
 def _create_fernsehbild_rgba(self, ct_alpha_def,
-                             erosion_size = 5, gaussion_filter_sigma = 3,
-                             dark_transparency_factor = 3.0 ):
+                             erosion_size=5, gaussion_filter_sigma=3,
+                             dark_transparency_factor=3.0,
+                             contrast_optimization_expr=None):
     """
     """
+    if contrast_optimization_expr is None:
+        contrast_optimization_expr = "hist_equalize(inputdata, 8, 254)"
+
     ct_chn = self["CloudType"]
     ct_data = ct_chn.cloudtype
 
@@ -702,11 +708,13 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     # mask already masked data
     ct_alpha[ct_data.mask] = 0.0
-    ct_mask = ct_alpha < 0.01
+    # ct_mask = ct_alpha < 0.01
 
     # shrink alpha mask to ensure that smoothed edges are inside mask
     import scipy.ndimage as ndi
-    ct_alpha = ndi.grey_erosion(ct_alpha, size=(erosion_size, erosion_size)).astype(ct_alpha.dtype)
+    ct_alpha = ndi.grey_erosion(
+        ct_alpha, size=(erosion_size, erosion_size)).astype(
+        ct_alpha.dtype)
 
     self.check_channels("HRV", 0.85, 10.8)
 
@@ -732,8 +740,10 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
                  format(median, mean, abs(median - mean),
                         hrvc_clouds.min(), max_value))
 
-    d = hist_equalize(hrvc_clouds, 8, 254)
+    # execute contrast optimization function (i.e. histogram equalisation)
+    d = eval(contrast_optimization_expr, globals(), {'inputdata': hrvc_clouds})
     d.mask = False
+
     day_img = geo_image.GeoImage(d,
                                  self.area,
                                  self.time_slot,
@@ -754,8 +764,11 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
                         ir_clouds.min(), max_value))
 
     median = np.ma.median(ir_clouds)
-    d = hist_equalize(ir_clouds, 8, 254)
+
+    # execute contrast optimization function (i.e. histogram equalisation)
+    d = eval(contrast_optimization_expr, globals(), {'inputdata': ir_clouds})
     d.mask = False
+
     night_img = geo_image.GeoImage(d,
                                    self.area,
                                    self.time_slot,
@@ -772,7 +785,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data =\
-            self._dwd_get_alpha_channel().data.astype(np.float64)/255.0
+            self._dwd_get_alpha_channel().data.astype(np.float64) / 255.0
         # create day image
         day_img.putalpha(alpha_data)
         day_img.enhance(inverse=(False, True))
@@ -785,7 +798,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
     if gaussion_filter_sigma is not None:
         # smooth alpha channel
         ct_alpha = ndi.gaussian_filter(ct_alpha, gaussion_filter_sigma)
-        
+
     if dark_transparency_factor is not None:
         # add transparency to dark image areas
         ct_alpha = np.minimum(ct_alpha, img.channels[0] *
@@ -806,10 +819,11 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
     return img
 
 
-def dwd_FernsehbildRGBA(self, ct_alpha = None,
-                        erosion_size = None,
-                        gaussion_filter_sigma = None,
-                        dark_transparency_factor = 3.0):
+def dwd_FernsehbildRGBA(self, ct_alpha=None,
+                        erosion_size=None,
+                        gaussion_filter_sigma=None,
+                        dark_transparency_factor=3.0,
+                        contrast_optimization_expr=None):
     """
     """
     if ct_alpha is None:
@@ -822,83 +836,97 @@ def dwd_FernsehbildRGBA(self, ct_alpha = None,
     return self._create_fernsehbild_rgba(ct_alpha,
                                          erosion_size,
                                          gaussion_filter_sigma,
-                                         dark_transparency_factor)
+                                         dark_transparency_factor,
+                                         contrast_optimization_expr)
 
 dwd_FernsehbildRGBA.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
 
 def hist_equalize(data, val_min, val_max):
-    #     /**
-    #    * Computes the histogram equalization of the specified integer array
-    #    * with respect to the specified minimum and maximum value.
-    #    * @param arr The array to be equalized.
-    #    * @param min The minimum value.
-    #    * @param max The maximum value.
-    #    * @return The equalized input integer array.
-    #    * @nflfunction equalize
-    #    */
-    #   public static IntegerArrayValue equalize(IntegerArrayValue arr, int min, int max) {
-    #     // compute histogram for given range
-    #     int histLength = max - min + 1;
-    #     int hist[] = new int [histLength];
-    #     ArrayIterator iter = arr.iterator(1);
-    #     int length = iter.getLength()[0];
-    #     int total = 0;
-    #    
-    #  while (iter.hasNext()) {
-    #       int value[] = (int[]) iter.next();
-    #       for (int k = length-1; k >= 0; k--) {
-    #         int val = value[k];
-    #         if (min <= val && val <= max) {
-    #           hist[val-min]++;
-    #           total++;
-    #         }
-    #       }
-    #     }
-    # 
-    #     // compute equalize lookup table
-    #     int lut[] = new int [max-min+1];
-    #     int sum = 0;
-    #     float factor = (float)(max-min)/(total - hist[0]);
-    #     lut[0] = min;
-    #     for (int k = 1; k < histLength; k++) {
-    #       sum += hist[k];
-    #       lut[k] = (int) (sum*factor + min + 0.5f);
-    #     }
-    #     // perform equalization
-    #     iter = arr.iterator(1);
-    #     while (iter.hasNext()) {
-    #       int value[] = (int[]) iter.next();
-    #       for (int k = length-1; k >= 0; k--) {
-    #         int val = value[k];
-    #         if (min <= val && val <= max) {
-    #           value[k] = lut[val-min];
-    #         }
-    #       }
-    #     }
-    #     return arr;
-    #   }
+    '''histogram equalisation as implemented in NinJo formula layer
+    Stats.equalize but with automatic scaling to min and max data values
+    '''
 
     # map data values to range 0..255
     data_min = np.ma.min(data)
     data_max = np.ma.max(data)
-    scaled = ((data - data_min)/(data_max - data_min))*255
+    scaled = ((data - data_min) / (data_max - data_min)) * 255
     hist_length = val_max - val_min + 1
     # mask values outside of the range
     scaled = np.ma.masked_outside(scaled, val_min, val_max)
     c_scaled = np.ma.compressed(scaled)
     # create histogram and calculate cumulative distributive function
-    hist, bins = np.histogram(c_scaled, hist_length)
+    hist, _ = np.histogram(c_scaled, hist_length)
     cdf = hist.cumsum()
     # create lookup table
-    factor = (val_max - val_min)*1.0/(cdf[-1] - cdf[0])*1.0
-    lut = (cdf - cdf[0])*factor + val_min + 0.5
+    factor = (val_max - val_min) * 1.0 / (cdf[-1] - cdf[0]) * 1.0
+    lut = (cdf - cdf[0]) * factor + val_min + 0.5
     lut = lut.astype('uint8')
     # apply lookup table values
     scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - val_min]
     # set mask to the incoming one
     scaled.mask = data.mask
 
+    return scaled
+
+
+def hist_equalize_v2(data, new_min, new_max):
+    '''histogram equalisation as implemented in NinJo formula layer Stats.equalize
+    '''
+
+    hist_length = new_max - new_min + 1
+    # mask values outside of the range
+    scaled = np.ma.masked_outside(data, new_min, new_max)
+    c_scaled = np.ma.compressed(scaled)
+    # create histogram and calculate cumulative distributive function
+    hist, _ = np.histogram(c_scaled, hist_length, range=(new_min, new_max))
+    cdf = hist.cumsum()
+    # create lookup table
+    factor = (new_max - new_min) * 1.0 / (cdf[-1] - cdf[0]) * 1.0
+    lut = (cdf - cdf[0]) * factor + new_min + 0.5
+    lut = lut.astype('uint8')
+    # apply lookup table values
+    scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - new_min]
+    # set mask to the incoming one
+    scaled.mask = data.mask
+
+    return scaled
+
+
+def hist_equalize_v3(data):
+    '''histogram equalisation as implemented DWD's Fortran code
+    '''
+    # mask values outside of the range
+    data1d = np.ma.compressed(np.ma.masked_outside(data, 0, 255))
+    # create histogram and calculate cumulative distributive function
+    histo, _ = np.histogram(data1d, 256, range=(0, 255))
+
+    keil = np.ma.arange(256)
+    keil = keil.astype('uint8')
+    ihistsum = histo.sum()
+
+    if ihistsum == 0:
+        LOGGER.error("hist.sum() == 0")
+        return
+
+    khistsum = 0
+    for ih in range(0, 256):
+        khistsum = khistsum + histo[ih]
+        keil[ih] = (255 * khistsum) / ihistsum
+
+    # apply lookup table values
+    result = np.ma.copy(data)
+    result[~data.mask] = keil[data[~data.mask].astype('uint8')]
+    return result
+
+
+def hist_normalize_linear(data, new_min, new_max):
+    """normalizes image to new min max
+    """
+    data_min = np.ma.min(data)
+    data_max = np.ma.max(data)
+    scaled = (data - data_min) * ((new_max - new_min) / (data_max - data_min))
+    scaled.mask = data.mask
     return scaled
 
 
