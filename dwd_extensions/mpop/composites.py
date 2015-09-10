@@ -689,6 +689,18 @@ def dwd_Fernsehbild(self):
 dwd_Fernsehbild.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
 
+def select_range_and_scale(data, color_min, color_max, fac=1.0):
+    """ based on Image._add_channel to support range extraction without
+    usage of Image or GeoImage
+    """
+    scaled = ((data - color_min) * 1.0 / (color_max - color_min))
+    scaled[scaled < 0.0] = 0.0
+    scaled[scaled > 1.0] = 1.0
+    if fac != 0.0:
+        scaled = scaled * fac
+    return scaled
+
+
 def _create_fernsehbild_rgba(self, ct_alpha_def,
                              erosion_size=5, gaussion_filter_sigma=3,
                              dark_transparency_factor=3.0,
@@ -741,6 +753,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
                         hrvc_clouds.min(), max_value))
 
     # execute contrast optimization function (i.e. histogram equalisation)
+    hrvc_clouds = select_range_and_scale(hrvc_clouds, 0, 100, 255)
     d = eval(contrast_optimization_expr, globals(), {'inputdata': hrvc_clouds})
     d.mask = False
 
@@ -766,6 +779,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
     median = np.ma.median(ir_clouds)
 
     # execute contrast optimization function (i.e. histogram equalisation)
+    ir_clouds = select_range_and_scale(ir_clouds, 40, -87.5, 255)
     d = eval(contrast_optimization_expr, globals(), {'inputdata': ir_clouds})
     d.mask = False
 
@@ -774,7 +788,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
                                    self.time_slot,
                                    fill_value=0,
                                    mode="L",
-                                   crange=(255, 0))
+                                   crange=(0, 255))
 #    night_img.enhance(stretch="histogram")
 
     if img_type == IMAGETYPES.DAY_ONLY:
