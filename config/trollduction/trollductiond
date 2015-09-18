@@ -27,6 +27,8 @@ fi
 PIDFILE=/tmp/trollduction-supervisord.pid
 CONFIGFILE=%CONFIGDIR%/trollduction/supervisord.conf
 LOGFILE=%LOGDIR%/supervisord.log
+USER=$(whoami)
+
 
 # Exit if the package is not installed
 command -v "$DAEMON" >/dev/null 2>&1 || { echo>&2 "$DAEMON does not exist. Aborting..."; exit 1;}
@@ -40,7 +42,7 @@ start() {
         exit 2;
     else
         mkdir -p `dirname $LOGFILE`
-        $DAEMON --pidfile $PIDFILE --configuration $CONFIGFILE --logfile $LOGFILE
+        $DAEMON --user=$USER --pidfile $PIDFILE --configuration $CONFIGFILE --logfile $LOGFILE
         RETVAL=$?
         return $RETVAL
     fi
