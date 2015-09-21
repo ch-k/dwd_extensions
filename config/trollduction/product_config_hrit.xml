@@ -448,6 +448,7 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-1-n</ninjo_product_name>
                 <sat_id>6300014</sat_id>
+		<chan_id>9800015</chan_id>
             </format_params>
         </rule>
         
@@ -460,6 +461,7 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-9i-n</ninjo_product_name>
                 <sat_id>6300014</sat_id>
+		<chan_id>9900015</chan_id>
             </format_params>
         </rule>
 
@@ -492,7 +494,6 @@
                 <ch_max>125</ch_max>
                 <sat_id>6300014</sat_id>
                 <ninjo_product_name>{composite}</ninjo_product_name>
-                <sat_id>6300014</sat_id>
             </format_params>
         </rule>
 
@@ -520,6 +521,7 @@
             <format_params>
                 <ninjo_product_name>msg_airmass</ninjo_product_name>
                 <sat_id>6300014</sat_id>
+		<chan_id>6500015</chan_id>
             </format_params>
         </rule>
 
@@ -532,6 +534,7 @@
             <format_params>
                 <ninjo_product_name>msg_schwere_konvektion_tag</ninjo_product_name>
                 <sat_id>6300014</sat_id>
+		<chan_id>6700015</chan_id>
             </format_params>
         </rule>
 
@@ -544,6 +547,7 @@
             <format_params>
                 <ninjo_product_name>msg_dust</ninjo_product_name>
                 <sat_id>6300014</sat_id>
+		<chan_id>6600015</chan_id>
             </format_params>
         </rule>
         
