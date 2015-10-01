@@ -260,7 +260,7 @@
                 <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254)"</contrast_optimization_expr>
             </composite_params>
             <name>FernsehbildRGBA</name>
-            <filename>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}.tif</filename>
+            <filename>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
         </product>
         <product>
             <composite>dwd_FernsehbildRGBA</composite>
@@ -557,10 +557,10 @@
         </rule>
         
         <rule>
-            <input_pattern>.*FernsehbildRGBA.*</input_pattern>
+            <input_pattern>.*FernsehbildRGBA.*contrast_optim.tif</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff_tifffile</format>
             <format_params>
                 <ninjo_product_name>IR_108</ninjo_product_name>
@@ -569,10 +569,39 @@
                 <data_cat>GPRN</data_cat>
             </format_params>
         </rule>
-        
+
+	<rule>
+            <input_pattern>.*FernsehbildRGBA.*contrast_optim_fortran.tif</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}_contrast_optim_fortran.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
+            <format_params>
+                <ninjo_product_name>IR_108</ninjo_product_name>
+                <sat_id>6900014</sat_id>
+                <chan_id>18200015</chan_id>
+                <data_cat>GPRN</data_cat>
+            </format_params>
+        </rule>
+
+         <rule>
+            <input_pattern>.*FernsehbildRGBA.*contrast_optim_normalize_linear.tif</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}_contrast_optim_normalize_linear.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff_tifffile</format>
+            <format_params>
+                <ninjo_product_name>IR_108</ninjo_product_name>
+                <sat_id>6900014</sat_id>
+                <chan_id>18200015</chan_id>
+                <data_cat>GPRN</data_cat>
+            </format_params>
+        </rule>
+
         <rule>
             <input_pattern>.*Fernsehbild.*</input_pattern>
             <rule_group>ninjo</rule_group>
+
             <out_box_ref>ninjo</out_box_ref>
             <dest_filename>{composite}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff_tifffile</format>
