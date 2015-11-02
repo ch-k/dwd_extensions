@@ -300,6 +300,25 @@
         </product>
     </area>
 
+	<area>
+        <process_num>3</process_num>
+        <name>pcwarnapp1500m</name>
+        <definition>pcwarnapp1500m</definition>
+
+        <product>
+            <composite>dwd_FernsehbildRGBA</composite>
+            <composite_params>
+                <ct_alpha>[0.0, ] * 5 + [1.0, ] * 10 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
+                <erosion_size>None</erosion_size>
+                <gaussion_filter_sigma>2</gaussion_filter_sigma>
+                <dark_transparency_factor>2</dark_transparency_factor>
+                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254)"</contrast_optimization_expr>
+            </composite_params>
+            <name>FernsehbildRGBA</name>
+            <filename>FernsehbildRGBA_pcwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
+        </product>
+    </area>
+    
     <post_processing>
         <rrd_dir id="post_processing_rrd_dir">rrd</rrd_dir>
         <out_box>
@@ -570,7 +589,7 @@
             </format_params>
         </rule>
 
-	<rule>
+		<rule>
             <input_pattern>.*FernsehbildRGBA.*contrast_optim_fortran.tif</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
