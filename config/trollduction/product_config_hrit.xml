@@ -314,8 +314,8 @@
                 <dark_transparency_factor>2</dark_transparency_factor>
                 <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254)"</contrast_optimization_expr>
             </composite_params>
-            <name>FernsehbildRGBA</name>
-            <filename>FernsehbildRGBA_pcwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
+            <name>WarnappbildRGBA</name>
+            <filename>WarnappbildRGBA_pcwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
         </product>
     </area>
     
