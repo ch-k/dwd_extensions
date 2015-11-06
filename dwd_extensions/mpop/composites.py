@@ -890,32 +890,35 @@ def hist_equalize_v2(data, val_min, val_max, dest_min=None):
     dest_min: new minimum value, values will be shifted and shrinked to
     [dest_min, 255]
     '''
-
     hist_length = val_max - val_min + 1
-    # mask values outside of the range
+    
+    # Mask values outside of the range.
     scaled = np.ma.masked_outside(data, val_min, val_max)
     c_scaled = np.ma.compressed(scaled)
-    # create histogram and calculate cumulative distributive function
+    # Create histogram and calculate cumulative distributive function.
     hist, _ = np.histogram(c_scaled, hist_length, range=(val_min, val_max))
     cdf = hist.cumsum()
-    # create lookup table
+    
+    # Create lookup table.
     factor = (val_max - val_min) * 1.0 / (cdf[-1] - cdf[0]) * 1.0
     lut = (cdf - cdf[0]) * factor + val_min
-
     if dest_min is not None:
-        # shift and shrink to [dest_min, 255]
+        # Shift and shrink to [dest_min, 255].
         lut = ((lut-val_min)/float(hist_length))*(255.0-dest_min)+dest_min
-
-    # round
+        
+    # Round.
     lut = lut + 0.5
     lut = lut.astype('uint8')
-
-    # apply lookup table values
-    scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - val_min]
-
-    # set mask to the incoming one
+    
+    # Apply lookup table values conditionally if masked valeus are present.
+    if scaled.mask.any():
+        scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - val_min]
+    else:
+        scaled = lut[scaled.astype('uint8') - val_min]
+        scaled = np.ma.masked_array(scaled, mask=False)
+        
+    # Set mask to the incoming one.
     scaled.mask = data.mask
-
     return scaled
 
 
