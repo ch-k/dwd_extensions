@@ -44,6 +44,7 @@ except ImportError:
     rrd = None
 from dwd_extensions.layout import LayoutHandler
 from dwd_extensions.tools.config_watcher import ConfigWatcher
+from urlparse import urlparse
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -230,11 +231,11 @@ class DataProcessor(object):
 
                 skip = False
                 try:
-                    t_epi = os.path.getmtime(params['uri'])
+                    t_epi = os.path.getmtime(params['source_uri'])
                 except Exception as e:
                     LOGGER.error(
                         "Could not read modification time of {0} ({1})".format(
-                            params['uri'], e))
+                            params['source_uri'], e))
                     skip = True
                 try:
                     t_product = os.path.getmtime(fname)
@@ -261,13 +262,18 @@ class DataProcessor(object):
     def run(self, product_config, msg, config_dir):
         """Process the data
         """
-        LOGGER.info('New data available: %s', msg.data['product_filename'])
+        LOGGER.info('New data available: %s', msg.data['uri'])
 
         self._data_ok = True
         self.set_config(product_config)
         self.layout_handler = LayoutHandler(product_config, config_dir)
 
-        in_filename = msg.data['product_filename']
+        p = urlparse(msg.data['uri'])
+        if p.netloc != '':
+            LOGGER.error('uri not supported: {0}'.format(msg.data['uri']))
+            return
+        
+        in_filename = p.path
         in_filename_base = os.path.basename(in_filename)
         rules_to_apply = []
         rules_to_apply_groups = set()
@@ -290,7 +296,8 @@ class DataProcessor(object):
             t1a = time.time()
 
             # load image
-            area = get_area_def(msg.data['areaname'])
+            area = get_area_def(msg.data['area']['name'])
+            
             geo_img = self.read_image(in_filename, area, msg.data['time_eos'])
 
             # and apply each rule
@@ -334,8 +341,7 @@ class DataProcessor(object):
                 LOGGER.debug("All files saved")
 
                 LOGGER.info(
-                    'File %s processed in %.1f s', msg.data
-                    ['product_filename'],
+                    'File %s processed in %.1f s', in_filename,
                     time.time() - t1a)
 
             if not self._data_ok:
@@ -344,8 +350,7 @@ class DataProcessor(object):
                                msg.data['product_filename'])
         else:
             LOGGER.warning(
-                "no matching rule found for %s" % msg.data
-                ['product_filename'])
+                "no matching rule found for %s" % in_filename)
 
     def get_save_arguments(self, rule):
         save_kwords = {}
@@ -387,12 +392,23 @@ class DataProcessor(object):
         params = dict((k, v) for k, v in msg.data.items())
         params.update(rule)
 
-        # special addition to simplify rules
-        if 'composite' in params:
-            params['composite_no_underscore'] =\
-                params['composite'].replace('_', '')
+        product_name = None
+        if 'product_name' in params:
+            product_name = params['product_name']
+        elif 'productname' in params:
+            product_name = params['productname']
         else:
-            print "no composite key"
+            print "no product_name key"
+        
+        # special addition to simplify rules
+        params['productname_no_underscore'] =\
+            product_name.replace('_', '')
+        params['product_name_no_underscore'] =\
+            product_name.replace('_', '')
+        params['productname'] = product_name
+        params['product_name'] = product_name
+
+        params['areaname'] = params['area']['name']
 
         if 'time' in params:
             t = params['time']
@@ -467,17 +483,18 @@ class DataWriter(Thread):
         LOGGER.info("stopping data writer")
         self._loop = False
 
-from trollduction.minion import Minion
+# from trollduction.minion import Minion
 
 
-class PostProcessor(Minion):
+# class PostProcessor(Minion):
+class PostProcessor(object):
 
     """PostProcessor takes in messages and generates DataProcessor jobs.
     """
 
     def __init__(self, config, managed=True):
         LOGGER.debug("Minion should be starting now")
-        Minion.__init__(self)
+        # Minion.__init__(self)
 
         self.stop_called = False
         self.td_config = None
@@ -507,7 +524,7 @@ class PostProcessor(Minion):
         except AttributeError:
             self.td_config = config
             self.update_td_config()
-        Minion.start(self)
+        # Minion.start(self)
 
     # def start(self):
         # Minion.start(self)
@@ -528,13 +545,13 @@ class PostProcessor(Minion):
         # Initialize/restart listener
         if self.listener is None:
             self.listener = ListenerContainer(
-                topic=self.td_config['td_product_finished_topic'])
+                topics=self.td_config['td_product_finished_topic'].split(','))
 #            self.listener = ListenerContainer()
             LOGGER.info("Listener started")
         else:
             #            self.listener.restart_listener('file')
             self.listener.restart_listener(
-                self.td_config['td_product_finished_topic'])
+                self.td_config['td_product_finished_topic'].split(','))
             LOGGER.info("Listener restarted")
 
         try:
@@ -590,7 +607,7 @@ class PostProcessor(Minion):
         if self.stop_called is False:
             self.stop_called = True
             self.cleanup()
-            Minion.stop(self)
+            # Minion.stop(self)
 
     def shutdown(self):
         '''Shutdown trollduction.

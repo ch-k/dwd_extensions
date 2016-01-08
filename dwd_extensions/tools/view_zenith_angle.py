@@ -37,7 +37,7 @@ class AsyncProcessor(object):
         self.worker_process = multiprocessing.Process(
             target=self._call_async_function,
             args=(self.call_params, self.results, result_key)
-            )
+        )
         self.worker_process.start()
 
     def join(self):
@@ -172,7 +172,7 @@ class ViewZenithAngleCacheManager(object):
             self.sublon_processor = ViewZenithFromSubLonAsyncProcessor()
 
     def prepare(self, msg, area_def_name, time_slot):
-        self.is_geo = msg.data['orbit'] is None
+        self.is_geo = msg.data['orbit_number'] is None
         if self.is_geo:
             LOGGER.info("no orbit defined, assuming geostationary satellite "
                         "(vza based on sublon parameter provided by sat data)")

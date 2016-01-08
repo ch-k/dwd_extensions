@@ -628,6 +628,8 @@ def dwd_Fernsehbild(self):
 
     # extract the clouds for hrvis channel
     hrvc_clouds = hrvc_chn.data.copy()
+    if hrvc_clouds.mask == False:
+        hrvc_clouds.mask = np.zeros(ct_data.shape, dtype=bool)
     hrvc_clouds.mask[ct_mask] = True
 
     median = np.ma.median(hrvc_clouds)
@@ -648,6 +650,8 @@ def dwd_Fernsehbild(self):
 
     # extract the clouds for infrared channel
     ir_clouds = self[10.8].data.copy()
+    if ir_clouds.mask == False:
+        ir_clouds.mask = np.zeros(ct_data.shape, dtype=bool)
     ir_clouds.mask[ct_mask] = True
 
     median = np.ma.median(ir_clouds)
