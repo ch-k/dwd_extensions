@@ -21,7 +21,6 @@ import numpy as np
 import logging
 
 from pycoast import ContourWriterAGG  # @UnresolvedImport
-from _imaging import font, fill
 from mpop.projector import get_area_def  # @UnresolvedImport
 from ConfigParser import NoSectionError, NoOptionError
 
