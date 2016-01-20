@@ -1,8 +1,8 @@
 <product_config>
     <common>
-        <output_dir id="common_output_dir">/home/pytroll/TROLLDUCTION_OUT/{time:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/
+        <output_dir id="common_output_dir">/home/pytroll/TROLLDUCTION_OUT/{time_eos:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/
         </output_dir>
-        <filename>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+        <filename>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
         </filename>
         <precompute>True</precompute>
     </common>
@@ -12,7 +12,7 @@
     	<area id="nq0001km" name="nq0001km" process_num="0">
     	
 	        <product id="dwd_ninjo_HRV" name="HRV" >
-	            <file>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -20,47 +20,47 @@
 	    <area id="nq0003km" name="nq0003km" process_num="0">
 	    
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
-	            <file>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_VIS008" name="VIS008">
-	            <file>METEOSAT_AFRIKA_EUROPA_VIS008_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_VIS008_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_016" name="IR_016">
-	            <file>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_039" name="IR_039">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_062" name="WV_062">
-	            <file>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_073" name="WV_073">
-	            <file>METEOSAT_AFRIKA_EUROPA_WV073_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_WV073_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_087" name="IR_087">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR087_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR087_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_097" name="IR_097">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR097_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR097_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_108" name="IR_108">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_120" name="IR_120">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR120_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR120_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_134" name="IR_134">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR134_nq0003km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_AFRIKA_EUROPA_IR134_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -68,7 +68,7 @@
 	    <area id="nqceur1km" name="nqceur1km" process_num="0">
 	    
 	        <product id="dwd_ninjo_HRV" name="HRV">
-	            <file>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -76,47 +76,47 @@
 	    <area id="nqceur3km" name="nqceur3km" process_num="1">
 
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
-	            <file>METEOSAT_EUROPA_ZENTRAL_VIS006_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_VIS006_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_VIS008" name="VIS008">
-	            <file>METEOSAT_EUROPA_ZENTRAL_VIS008_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_VIS008_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_016" name="IR_016">
-	            <file>METEOSAT_EUROPA_ZENTRAL_NIR016_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_NIR016_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_039" name="IR_039">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR039_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR039_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_062" name="WV_062">
-	            <file>METEOSAT_EUROPA_ZENTRAL_WV062_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_WV062_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_073" name="WV_073">
-	            <file>METEOSAT_EUROPA_ZENTRAL_WV073_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_WV073_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_087" name="IR_087">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR087_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR087_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_097" name="IR_097">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR097_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR097_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_108" name="IR_108">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR108_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR108_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_120" name="IR_120">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR120_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR120_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_134" name="IR_134">
-	            <file>METEOSAT_EUROPA_ZENTRAL_IR134_nqceur3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_ZENTRAL_IR134_nqceur3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -124,15 +124,15 @@
 	    <area id="nqeuro1km" name="nqeuro1km" process_num="2">
 
 	        <product id="dwd_ninjo_HRV" name="HRV">
-	            <file>METEOSAT_EUROPA_GESAMT_HRV_nqeuro1km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_HRV_nqeuro1km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_RGB_12_12_1_N" name="RGB_12_12_1_N">
-	            <file>METEOSAT_EUROPA_GESAMT_RGB-12-12-1-N_nqeuro1km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_RGB-12-12-1-N_nqeuro1km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_RGB_12_12_9i_N" name="RGB_12_12_9i_N">
-	            <file>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -140,59 +140,59 @@
 	    <area id="nqeuro3km" name="nqeuro3km" process_num="1">
 
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
-	            <file>METEOSAT_EUROPA_GESAMT_VIS006_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_VIS006_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_VIS008" name="VIS008">
-	            <file>METEOSAT_EUROPA_GESAMT_VIS008_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_VIS008_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_016" name="IR_016">
-	            <file>METEOSAT_EUROPA_GESAMT_NIR016_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_NIR016_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_039" name="IR_039">
-	            <file>METEOSAT_EUROPA_GESAMT_IR039_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR039_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_062" name="WV_062">
-	            <file>METEOSAT_EUROPA_GESAMT_WV062_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_WV062_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_WV_073" name="WV_073">
-	            <file>METEOSAT_EUROPA_GESAMT_WV073_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_WV073_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_087" name="IR_087">
-	            <file>METEOSAT_EUROPA_GESAMT_IR087_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR087_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_097" name="IR_097">
-	            <file>METEOSAT_EUROPA_GESAMT_IR097_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR097_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_108" name="IR_108">
-	            <file>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_120" name="IR_120">
-	            <file>METEOSAT_EUROPA_GESAMT_IR120_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR120_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_ninjo_IR_134" name="IR_134">
-	            <file>METEOSAT_EUROPA_GESAMT_IR134_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_IR134_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_airmass" name="Luftmasse">
-	            <file>METEOSAT_EUROPA_GESAMT_RGB-Luftmasse_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_RGB-Luftmasse_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_schwere_konvektion_tag" name="Konvektion">
-	            <file>METEOSAT_EUROPA_GESAMT_RGB-Konvektion_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_RGB-Konvektion_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_dust" name="RGB-Staub">
-	            <file>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>METEOSAT_EUROPA_GESAMT_RGB-Staub_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -200,7 +200,7 @@
 		<area id="nqeuro3km" name="nqeuro3km" process_num="3">
 
 	        <product id="dwd_Fernsehbild" name="Fernsehbild">
-	            <file>Fernsehbild_nqeuro3km_{time:%Y%m%d%H%M}.tif</file>
+	            <file>Fernsehbild_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA">
@@ -211,7 +211,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
-	            <file>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim.tif</file>
+	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
 	        
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_fortran">
@@ -222,7 +222,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v3(inputdata)"</contrast_optimization_expr>
 	            </composite_params>
-	            <file>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim_fortran.tif</file>
+	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim_fortran.tif</file>
 	        </product>
 	        
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_normalize_linear">
@@ -233,7 +233,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_normalize_linear(inputdata, 8, 254)"</contrast_optimization_expr>
 	            </composite_params>
-	            <file>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim_normalize_linear.tif</file>
+	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim_normalize_linear.tif</file>
 	        </product>
 	        
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_none">
@@ -244,7 +244,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"inputdata"</contrast_optimization_expr>
 	            </composite_params>
-	            <file>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim_none.tif</file>
+	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim_none.tif</file>
 	        </product>
 	        
 	    </area>
@@ -259,7 +259,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
-	            <file>WarnappbildRGBA_pcwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</file>
+	            <file>WarnappbildRGBA_pcwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
 	        
 	    </area>
@@ -275,7 +275,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
-	            <filename>WarnappbildRGBA_mercwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
+	            <filename>WarnappbildRGBA_mercwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</filename>
 	        </product>
 	        
 	    </area>
