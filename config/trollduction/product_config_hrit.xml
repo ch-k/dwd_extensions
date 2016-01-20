@@ -209,7 +209,7 @@
 	                <erosion_size>None</erosion_size>
 	                <gaussion_filter_sigma>2</gaussion_filter_sigma>
 	                <dark_transparency_factor>2</dark_transparency_factor>
-	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254)"</contrast_optimization_expr>
+	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
 	            <file>FernsehbildRGBA_nqeuro3km_{time:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
@@ -257,7 +257,7 @@
 	                <erosion_size>None</erosion_size>
 	                <gaussion_filter_sigma>2</gaussion_filter_sigma>
 	                <dark_transparency_factor>2</dark_transparency_factor>
-	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 100)"</contrast_optimization_expr>
+	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
 	            <file>WarnappbildRGBA_pcwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
@@ -273,7 +273,7 @@
 	                <erosion_size>None</erosion_size>
 	                <gaussion_filter_sigma>2</gaussion_filter_sigma>
 	                <dark_transparency_factor>2</dark_transparency_factor>
-	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 100)"</contrast_optimization_expr>
+	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
 	            <filename>WarnappbildRGBA_mercwarnapp1500m_{time:%Y%m%d%H%M}_contrast_optim.tif</filename>
 	        </product>
