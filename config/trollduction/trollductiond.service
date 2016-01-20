@@ -1,0 +1,15 @@
+[Unit]
+Description=Trollduction supervisor daemon
+
+[Service]
+Type=forking
+ExecStart=%PYTHONBINDIR%supervisord -c "%CONFIGDIR%/trollduction/supervisord.conf"
+ExecStop=%PYTHONBINDIR%supervisorctl -c "%CONFIGDIR%/trollduction/supervisord.conf" shutdown
+ExecReload=%PYTHONBINDIR%supervisorctl -c "%CONFIGDIR%/trollduction/supervisord.conf" reload
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+User=pytroll
+
+[Install]
+WantedBy=multi-user.target

@@ -9,8 +9,7 @@
 ;  - Comments must have a leading space: "a=b ;comment" not "a=b;comment".
 
 [unix_http_server]
-;file=/var/run/pytroll-supervisord.sock   ; (the path to the socket file)
-file=/tmp/pytroll-supervisord.sock   ; (the path to the socket file)
+file=%(here)s/pytroll-supervisord.sock   ; (the path to the socket file)
 ;chmod=0700                 ; socket file mode (default 0700)
 ;chown=nobody:nogroup       ; socket file uid:gid owner
 ;username=user              ; (default is no username (open server))
@@ -47,7 +46,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [supervisorctl]
 ;serverurl=unix:///var/run/pytroll-supervisord.sock ; use a unix:// URL  for a unix socket
-serverurl=unix:///tmp/pytroll-supervisord.sock ; use a unix:// URL  for a unix socket
+serverurl=unix://%(here)s/pytroll-supervisord.sock ; use a unix:// URL  for a unix socket
 ;serverurl=http://127.0.0.1:9001 ; use an http:// url to specify an inet socket
 ;username=chris              ; should be same as http_username if set
 ;password=123                ; should be same as http_password if set
