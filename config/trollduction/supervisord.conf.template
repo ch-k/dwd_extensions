@@ -122,3 +122,6 @@ events=TICK_3600
 command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_check_products.sh
 events=TICK_60
 
+[eventlistener:copyafd]
+command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_copy_afd.sh
+events=TICK_300
