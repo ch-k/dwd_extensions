@@ -124,4 +124,4 @@ events=TICK_60
 
 [eventlistener:copyafd]
 command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_copy_afd.sh
-events=TICK_300
+events=TICK_60
