@@ -323,8 +323,9 @@ class ViewZenithAngleCacheManager(object):
         """
         if os.path.isdir(tle_path):
             # find the newest TLE file in the configured path
-            self.tle_file = max(glob.iglob(os.path.join(tle_path, '*.tle')),
-                                key=os.path.getctime)
+            files = glob.iglob(os.path.join(tle_path, '*.tle'))
+            if any(files):
+                self.tle_file = max(files, key=os.path.getctime)
         else:
             self.tle_file = tle_path
 
