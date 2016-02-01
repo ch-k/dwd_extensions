@@ -56,7 +56,7 @@ serverurl=unix://%(here)s/pytroll-supervisord.sock ; use a unix:// URL  for a un
 
 [program:nameserver]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %NAMESERVERPATH% -v     
+command=%PYTHONBIN% %NAMESERVERPATH% -v --no-multicast     
 process_name=trollduction-nameserver
 priority=1                  
 startsecs=3
