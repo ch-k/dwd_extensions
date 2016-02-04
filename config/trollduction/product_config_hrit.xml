@@ -214,6 +214,7 @@
 	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
 	        
+		<!--
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_fortran">
 	            <composite_params>
 	                <ct_alpha>[0.0, ] * 5 + [1.0, ] * 10 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
@@ -224,7 +225,8 @@
 	            </composite_params>
 	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim_fortran.tif</file>
 	        </product>
-	        
+	        -->
+		<!--
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_normalize_linear">
 	            <composite_params>
 	                <ct_alpha>[0.0, ] * 5 + [1.0, ] * 10 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
@@ -235,7 +237,7 @@
 	            </composite_params>
 	            <file>FernsehbildRGBA_nqeuro3km_{time_eos:%Y%m%d%H%M}_contrast_optim_normalize_linear.tif</file>
 	        </product>
-	        
+	        -->
 	        <product id="dwd_FernsehbildRGBA" name="FernsehbildRGBA_contrast_optim_none">
 	            <composite_params>
 	                <ct_alpha>[0.0, ] * 5 + [1.0, ] * 10 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
@@ -554,6 +556,7 @@
             </format_params>
         </rule>
 
+	<!--
 		<rule>
             <input_pattern>.*FernsehbildRGBA.*contrast_optim_fortran.tif</input_pattern>
             <rule_group>ninjo</rule_group>
@@ -567,7 +570,8 @@
                 <data_cat>GPRN</data_cat>
             </format_params>
         </rule>
-
+	-->
+	<!--
          <rule>
             <input_pattern>.*FernsehbildRGBA.*contrast_optim_normalize_linear.tif</input_pattern>
             <rule_group>ninjo</rule_group>
@@ -581,6 +585,7 @@
                 <data_cat>GPRN</data_cat>
             </format_params>
         </rule>
+	-->
 
         <rule>
             <input_pattern>.*Fernsehbild_.*</input_pattern>
