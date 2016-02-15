@@ -32,6 +32,7 @@ from mpop.projector import get_area_def
 from threading import Thread
 import numpy as np
 import os
+import shutil
 import Queue
 import logging
 import re
@@ -203,19 +204,26 @@ class DataProcessor(object):
                                      mode=mode)
         return geo_img
 
-    def save_img(self, geo_img, fname, rrd_fname, params):
+    def save_img(self, geo_img, src_fname, dest_fname, rrd_fname, params):
         save_params = self.get_save_arguments(params)
-
+        dest_dir = os.path.dirname(dest_fname)
         # first write to file with prefix "." (to ensure that
         # 3rd party software do not read incomplete files (i.e. AFD)
-        tmp_fname = os.path.join(os.path.dirname(fname),'.' + os.path.basename(fname))
-        geo_img.save(tmp_fname, **save_params)
+        tmp_fname = os.path.join(dest_dir,
+                                 '.' + os.path.basename(dest_fname))
+        if geo_img is None and src_fname is not None:
+            LOGGER.info("Copying file only from %s to %s", src_fname, dest_fname)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            shutil.copy(src_fname, tmp_fname)
+        else:
+            geo_img.save(tmp_fname, **save_params)
         # rename after writing is complete
-        os.rename(tmp_fname, fname)
+        os.rename(tmp_fname, dest_fname)
 
         # writing performance data to rrd file
         if rrd is not None:
-            if os.path.exists(fname):
+            if os.path.exists(dest_fname):
                 timeslot = to_unix_seconds(params['time_eos'])
                 if not os.path.exists(rrd_fname):
                     rrd.create(rrd_fname,
@@ -250,11 +258,11 @@ class DataProcessor(object):
                             params['source_uri'], e))
                     skip = True
                 try:
-                    t_product = os.path.getmtime(fname)
+                    t_product = os.path.getmtime(dest_fname)
                 except Exception as e:
                     LOGGER.error(
                         "Could not read modification time of {0} ({1})".format(
-                            fname, e))
+                            dest_fname, e))
                     skip = True
 
                 if skip is False:
@@ -284,11 +292,12 @@ class DataProcessor(object):
         if p.netloc != '':
             LOGGER.error('uri not supported: {0}'.format(msg.data['uri']))
             return
-        
+
         in_filename = p.path
         in_filename_base = os.path.basename(in_filename)
         rules_to_apply = []
         rules_to_apply_groups = set()
+        copy_src_file_only = True
         # find matching rules
         for rule in self.rules:
             pattern = rule['input_pattern']
@@ -304,13 +313,22 @@ class DataProcessor(object):
                 LOGGER.info("Rule match (%s)" % rule)
                 rules_to_apply.append(rule)
 
+                if rule.get('copySrcFileOnly', 'false').lower() not in ["true",
+                                                                        "yes",
+                                                                        "1"]:
+                    copy_src_file_only = False
+
         if len(rules_to_apply) > 0:
             t1a = time.time()
 
             # load image
             area = get_area_def(msg.data['area']['name'])
-            
-            geo_img = self.read_image(in_filename, area, msg.data['time_eos'])
+
+            # load image only when necessary
+            geo_img = None
+            if not copy_src_file_only:
+                geo_img = self.read_image(in_filename, area,
+                                          msg.data['time_eos'])
 
             # and apply each rule
             for rule in rules_to_apply:
@@ -327,7 +345,7 @@ class DataProcessor(object):
                     os.makedirs(self.rrd_dir)
                 rrd_fname = self.create_filename(re.sub(r"\{time.*\}",
                                                         "xx",
-                                                        fname_pattern)+".rrd",
+                                                        fname_pattern) + ".rrd",
                                                  self.rrd_dir,
                                                  params)
 
@@ -336,9 +354,17 @@ class DataProcessor(object):
 #                     self.layout_handler.layout(geo_img, area)
 #                 except ValueError as e:
 #                     LOGGER.error("Layouting failed: " + str(e))
-
+                if rule.get('copySrcFileOnly', 'false').lower() in ["true",
+                                                                        "yes",
+                                                                        "1"]:
+                    # copy inputput file only
+                    rule_geo_img = None
+                else:
+                    rule_geo_img = geo_img
+                    
                 self.writer.write(self.save_img,
-                                  geo_img,
+                                  rule_geo_img,
+                                  in_filename,
                                   fname,
                                   rrd_fname,
                                   params)
