@@ -205,7 +205,13 @@ class DataProcessor(object):
 
     def save_img(self, geo_img, fname, rrd_fname, params):
         save_params = self.get_save_arguments(params)
-        geo_img.save(fname, **save_params)
+
+        # first write to file with prefix "." (to ensure that
+        # 3rd party software do not read incomplete files (i.e. AFD)
+        tmp_fname = os.path.join(os.path.dirname(fname),'.' + os.path.basename(fname))
+        geo_img.save(tmp_fname, **save_params)
+        # rename after writing is complete
+        os.rename(tmp_fname, fname)
 
         # writing performance data to rrd file
         if rrd is not None:
@@ -213,7 +219,7 @@ class DataProcessor(object):
                 timeslot = to_unix_seconds(params['time_eos'])
                 if not os.path.exists(rrd_fname):
                     rrd.create(rrd_fname,
-                               '--start', str(timeslot-900),
+                               '--start', str(timeslot - 900),
                                # step size 900s=15min
                                # each step represents one time slot
                                '--step', '900',
@@ -254,8 +260,8 @@ class DataProcessor(object):
                 if skip is False:
                     try:
                         update_stmt = str(timeslot) +\
-                            ':'+str(int(t_product-t_epi)) +\
-                            ':'+str(int(t_product-timeslot))
+                            ':'+str(int(t_product - t_epi)) +\
+                            ':'+str(int(t_product - timeslot))
                         LOGGER.debug(
                             "rrd update %s %s" % (rrd_fname, update_stmt))
                         rrd.update(rrd_fname, update_stmt)
