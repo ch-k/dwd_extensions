@@ -187,11 +187,11 @@
 	            <file>METEOSAT_EUROPA_GESAMT_IR134_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
-	        <product id="dwd_airmass" name="Luftmasse">
+	        <product id="dwd_airmass" name="RGB-Luftmasse">
 	            <file>METEOSAT_EUROPA_GESAMT_RGB-Luftmasse_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
-	        <product id="dwd_schwere_konvektion_tag" name="Konvektion">
+	        <product id="dwd_schwere_konvektion_tag" name="RGB-Konvektion">
 	            <file>METEOSAT_EUROPA_GESAMT_RGB-Konvektion_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
