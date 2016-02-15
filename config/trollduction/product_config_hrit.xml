@@ -5,6 +5,10 @@
         <filename>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
         </filename>
         <precompute>True</precompute>
+        
+         <!--  replace real data values equal to fill_value (default 0) with this value -->
+       	<repl_fill_val_in_data>1</repl_fill_val_in_data>
+       	
     </common>
     
     <product_list>

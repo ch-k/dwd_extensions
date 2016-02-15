@@ -109,8 +109,14 @@ def read_tiff_with_gdal(filename):
         else:
             dtype = np.uint8  # @UndefinedVariable
         b = np.iinfo(dtype).max  # @UndefinedVariable
+        
+        mask = None
+        nodata_val = band.GetNoDataValue()
+        if nodata_val is not None:
+            mask = arr == nodata_val
+              
         channels.append(
-            np.ma.array(arr[:, :] / float(b)))  # @UndefinedVariable
+            np.ma.array(arr[:, :] / float(b), mask=mask))  # @UndefinedVariable
 
     return channels
 
