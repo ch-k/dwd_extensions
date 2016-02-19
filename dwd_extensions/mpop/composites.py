@@ -527,7 +527,7 @@ def dwd_ninjo_IR_039S(self):
     self.ref39_chan()
     return self._dwd_create_single_channel_image('_IR39Refl')
 
-dwd_ninjo_IR_039.prerequisites = set(['IR_039','IR_108','IR_134'])
+dwd_ninjo_IR_039S.prerequisites = set(['IR_039','IR_108','IR_134'])
 
 
 def dwd_ninjo_WV_062(self):
