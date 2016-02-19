@@ -8,6 +8,7 @@ import logging
 
 import mpop.imageo.geo_image as geo_image  # @UnresolvedImport
 from mpop.channel import Channel  # @UnresolvedImport
+from mpop.instruments.seviri import SeviriCompositer
 
 try:
     from pyorbital.astronomy import sun_zenith_angle as sza
@@ -110,7 +111,7 @@ def _is_solar_channel(self, chn):
     Returns true if the given channel is a visual one; false otherwise.
     """
     return self[chn].wavelength_range[2] < 4 or chn in[
-        'HRV', 'VIS006', 'VIS008', 'IR_016']
+        'HRV', 'VIS006', 'VIS008', 'IR_016', '_IR39Refl']
 
 
 def _dwd_channel_preparation(self, *chn):
@@ -520,6 +521,13 @@ def dwd_ninjo_IR_039(self):
     return self._dwd_create_single_channel_image('IR_039')
 
 dwd_ninjo_IR_039.prerequisites = set(['IR_039'])
+
+
+def dwd_ninjo_IR_039S(self):
+    self.ref39_chan()
+    return self._dwd_create_single_channel_image('_IR39Refl')
+
+dwd_ninjo_IR_039.prerequisites = set(['IR_039','IR_108','IR_134'])
 
 
 def dwd_ninjo_WV_062(self):
@@ -970,7 +978,7 @@ seviri = [
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
     _dwd_get_hrvc_channel, _dwd_get_alpha_channel, _dwd_get_image_type,
     _dwd_create_RGB_image, dwd_ninjo_VIS006, dwd_ninjo_VIS008,
-    dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
+    dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_IR_039S, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
     dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
     dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild,
