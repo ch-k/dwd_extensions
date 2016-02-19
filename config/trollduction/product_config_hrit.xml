@@ -38,10 +38,6 @@
 	        <product id="dwd_ninjo_IR_039" name="IR_039">
 	            <file>METEOSAT_AFRIKA_EUROPA_IR039_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
-
-	        <product id="dwd_ninjo_IR_039S" name="IR_039S">
-	            <file>METEOSAT_AFRIKA_EUROPA_IR039S_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
-	        </product>
 	        
 	        <product id="dwd_ninjo_WV_062" name="WV_062">
 	            <file>METEOSAT_AFRIKA_EUROPA_WV062_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
