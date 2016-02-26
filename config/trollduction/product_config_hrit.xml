@@ -273,7 +273,6 @@
     	<area id="mercwarnapp1500m" name="mercwarnapp1500m" process_num="3">
 	
 	        <product id="dwd_FernsehbildRGBA" name="WarnappbildRGBA">
-	            <composite>dwd_FernsehbildRGBA</composite>
 	            <composite_params>
 	                <ct_alpha>[0.0, ] * 5 + [1.0, ] * 10 + [0.0] + [1.0, ] * 3 + [0.3, 0.0]</ct_alpha>
 	                <erosion_size>None</erosion_size>
@@ -281,7 +280,7 @@
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
 	            </composite_params>
-	            <filename>WarnappbildRGBA_mercwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</filename>
+	            <file>WarnappbildRGBA_mercwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
 	        
 	    </area>
