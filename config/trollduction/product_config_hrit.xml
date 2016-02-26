@@ -299,6 +299,10 @@
             <name>browser</name>
             <output_dir id="out_box_dir_browser">/home/pytroll/OUTBOXES/browser/{time_eos:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/</output_dir>
         </out_box>
+	<out_box>
+            <name>warnapp</name>
+            <output_dir id="out_box_dir_warnapp">/home/pytroll/OUTBOXES/warnapp/{time_eos:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/</output_dir>
+        </out_box>
 
         <!-- NINJO -->
 
@@ -606,6 +610,24 @@
                 <ch_max_measurement_unit>255</ch_max_measurement_unit>
             </format_params>
         </rule>      
+
+
+        <!-- WARNAPP -->
+        <rule>
+            <input_pattern>WarnappbildRGBA_pcwarnapp1500m_.*</input_pattern>
+            <dest_filename>WarnappbildRGBA_pcwarnapp1500m_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>warnapp</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
+
+        <rule>
+            <input_pattern>WarnappbildRGBA_mercwarnapp1500m_.*</input_pattern>
+            <dest_filename>WarnappbildRGBA_mercwarnapp1500m_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>warnapp</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
+
+
 
         <!-- quicklook -->
         <!-- 
