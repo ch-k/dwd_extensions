@@ -264,8 +264,7 @@
 	                <gaussion_filter_sigma>2</gaussion_filter_sigma>
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
-			<copySrcFileOnly>true</copySrcFileOnly>
-	            </composite_params>
+		    </composite_params>
 	            <file>WarnappbildRGBA_pcwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</file>
 	        </product>
 	        
@@ -281,7 +280,6 @@
 	                <gaussion_filter_sigma>2</gaussion_filter_sigma>
 	                <dark_transparency_factor>2</dark_transparency_factor>
 	                <contrast_optimization_expr>"hist_equalize_v2(inputdata, 8, 254, 140)"</contrast_optimization_expr>
-			<copySrcFileOnly>true</copySrcFileOnly>
 	            </composite_params>
 	            <filename>WarnappbildRGBA_mercwarnapp1500m_{time_eos:%Y%m%d%H%M}_contrast_optim.tif</filename>
 	        </product>
