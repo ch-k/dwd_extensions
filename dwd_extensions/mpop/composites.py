@@ -99,7 +99,7 @@ def _dwd_kelvin_to_celsius(self, chn):
     """Apply Kelvin to Celsius conversion on infrared channels.
     """
     if not self._is_solar_channel(chn) and \
-            (self[chn].info['units'] == 'K' or self[chn].unit == 'K'):
+            (self[chn].info['units'] in ['K', 'degree Kelvin'] or self[chn].unit == 'K'):
         self[chn].data -= CONVERSION
         self[chn].info['units'] = self[chn].unit = 'C'
 
@@ -963,6 +963,8 @@ def hist_normalize_linear(data, new_min, new_max):
     return scaled
 
 
+
+
 seviri = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
@@ -975,3 +977,19 @@ seviri = [
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
     dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild,
     dwd_FernsehbildRGBA, _create_fernsehbild_rgba]
+
+def dwd_ninjo_GOES_10_7(self):
+    return self._dwd_create_single_channel_image('10_7')
+
+dwd_ninjo_GOES_10_7.prerequisites = set(['10_7'])
+
+
+imager13 = [
+    _is_solar_channel, _dwd_kelvin_to_celsius,
+    _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
+    _dwd_apply_view_zenith_angle_correction,
+    _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
+    _dwd_get_alpha_channel, _dwd_get_image_type,
+    dwd_ninjo_GOES_10_7]
+
+imager15 = imager13

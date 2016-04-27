@@ -25,123 +25,31 @@
 
 '''
 
-from trollduction.listener import ListenerContainer
-import mpop.imageo.geo_image as geo_image
-import time
-from mpop.projector import get_area_def
-from threading import Thread
-import numpy as np
-import os
-import shutil
 import Queue
-import logging
-import re
-import trollduction.helper_functions as helper_functions
-from trollsift import Parser
 import datetime
+from dwd_extensions.layout import LayoutHandler
+from dwd_extensions.tools.config_watcher import ConfigWatcher
+import logging
+from mpop.projector import get_area_def
+import os
+import re
+import shutil
+from threading import Thread
+import time
+from trollduction.listener import ListenerContainer
+from trollsift import Parser
+from urlparse import urlparse
+
+from dwd_extensions.tools.image_io import read_image
+import mpop.imageo.geo_image as geo_image
+import numpy as np
+import trollduction.helper_functions as helper_functions
 try:
     import rrdtool as rrd
 except ImportError:
     rrd = None
-from dwd_extensions.layout import LayoutHandler
-from dwd_extensions.tools.config_watcher import ConfigWatcher
-from urlparse import urlparse
 
 LOGGER = logging.getLogger("postprocessor")
-
-
-def read_tiff_with_gdal(filename):
-    """ read (geo)tiff via gdal
-        unfortunatly it does not work after ninjotiff module was loaded
-    """
-    # saver = __
-    # import__('mpop.imageo.formats.ninjotiff', globals(), locals(), ['save'])
-    from osgeo import gdal
-    logger = LOGGER
-
-    dst = gdal.Open(filename, gdal.GA_ReadOnly)
-
-    #
-    # Dataset information
-    #
-    geotransform = dst.GetGeoTransform()
-    projection = dst.GetProjection()
-    metadata = dst.GetMetadata()
-
-    logger.debug('description: %s' % dst.GetDescription())
-    logger.debug('driver: %s / %s' % (dst.GetDriver().ShortName,
-                                      dst.GetDriver().LongName))
-    logger.debug('size: %d x %d x %d' % (dst.RasterXSize, dst.RasterYSize,
-                                         dst.RasterCount))
-    logger.debug('geo transform: %s' % str(geotransform))
-    logger.debug('origin: %.3f, %.3f' % (geotransform[0], geotransform[3]))
-    logger.debug('pixel size: %.3f, %.3f' % (geotransform[1], geotransform[5]))
-    logger.debug('projection: %s' % projection)
-    logger.debug('metadata: %s', metadata)
-
-    #
-    # Fetching raster data
-    #
-    channels = []
-    for i in xrange(1, dst.RasterCount + 1):
-        band = dst.GetRasterBand(i)
-        logger.info(
-            'Band(%d) type: %s, size %d x %d' %
-            (i, gdal.GetDataTypeName(band.DataType),
-             dst.RasterXSize, dst.RasterYSize))
-        shape = (dst.RasterYSize, dst.RasterXSize)
-        if band.GetOverviewCount() > 0:
-            logger.debug('overview count: %d' % band.GetOverviewCount())
-        if not band.GetRasterColorTable() is None:
-            logger.debug('colortable size: %d' %
-                         band.GetRasterColorTable().GetCount())
-
-        data = band.ReadAsArray(0, 0, shape[1], shape[0])
-        logger.info('fetched array: %s %s %s [%d -> %.2f -> %d]' %
-                    (type(data), str(data.shape), data.dtype,
-                     data.min(), data.mean(), data.max()))
-
-        arr = np.array(data)  # @UndefinedVariable
-        # @UndefinedVariable
-        if band.DataType == gdal.GDT_UInt32:
-            dtype = np.uint32  # @UndefinedVariable
-        elif band.DataType == gdal.GDT_UInt16:
-            dtype = np.uint16  # @UndefinedVariable
-        else:
-            dtype = np.uint8  # @UndefinedVariable
-        b = np.iinfo(dtype).max  # @UndefinedVariable
-        
-        mask = None
-        nodata_val = band.GetNoDataValue()
-        if nodata_val is not None:
-            mask = arr == nodata_val
-              
-        channels.append(
-            np.ma.array(arr[:, :] / float(b), mask=mask))  # @UndefinedVariable
-
-    return channels
-
-
-def read_tiff_with_pil(filename):
-    """ read tiff via PIL
-        workaround function to replace 'read_tiff_with_gdal' until
-        issues with ninjotiff module have been resolved
-    """
-    # import mpop.imageo.formats.ninjotiff as ninjotiff
-    # for inf in ninjotiff.info(filename):
-    #    print inf, '\n'
-
-    from PIL import Image
-    im = Image.open(filename)
-    arr = np.array(im)  # @UndefinedVariable
-    channels = []
-    if len(arr.shape) == 2:
-        channels.append(np.ma.array(arr[:, :] / 255.0))  # @UndefinedVariable
-    else:
-        for i in range(0, arr.shape[2]):
-            channels.append(
-                np.ma.array(arr[:, :, i] / 255.0))  # @UndefinedVariable
-    return channels
 
 
 def to_unix_seconds(dt):
@@ -165,6 +73,8 @@ class DataProcessor(object):
         self.product_config = product_config
         self.out_boxes = dict()
         self.rules = []
+        self.dataset_processors = []
+        
         for key, values in product_config['post_processing'].iteritems():
             if key == 'rrd_dir':
                 self.rrd_dir = values
@@ -178,33 +88,14 @@ class DataProcessor(object):
                             self.rules.append(values)
                         else:
                             self.rules.append(value)
+                    elif key == 'dataset_processor':
+                        # in case of only one dataset_processors is defined
+                        if (isinstance(value, str)):
+                            self.dataset_processors.append(values)
+                        else:
+                            self.dataset_processors.append(value)
 
-    def read_image(self, filename, area, timeslot):
-        channels = read_tiff_with_gdal(filename)
-        # channels = read_tiff_with_pil(filename)
-
-        if len(channels) == 1:
-            mode = "L"
-            fill_value = (0)
-        elif len(channels) == 4:
-            # channels = channels[:-1]
-            # mode = "RGB"
-            # fill_value = (0, 0, 0)
-
-            mode = "RGBA"
-            fill_value = (0, 0, 0, 0)
-        else:
-            mode = "RGB"
-            fill_value = (0, 0, 0)
-
-        geo_img = geo_image.GeoImage(tuple(channels),
-                                     area,
-                                     timeslot,
-                                     fill_value=fill_value,
-                                     mode=mode)
-        return geo_img
-
-    def save_img(self, geo_img, src_fname, dest_fname, rrd_fname, params):
+    def save_img(self, geo_img, src_fname, dest_fname, rrd_fname, rrd_steps, params):
         save_params = self.get_save_arguments(params)
         dest_dir = os.path.dirname(dest_fname)
         # first write to file with prefix "." (to ensure that
@@ -212,7 +103,8 @@ class DataProcessor(object):
         tmp_fname = os.path.join(dest_dir,
                                  '.' + os.path.basename(dest_fname))
         if geo_img is None and src_fname is not None:
-            LOGGER.info("Copying file only from %s to %s", src_fname, dest_fname)
+            LOGGER.info("Copying file only from %s to %s",
+                        src_fname, dest_fname)
             if not os.path.exists(dest_dir):
                 os.makedirs(dest_dir)
             shutil.copy(src_fname, tmp_fname)
@@ -227,27 +119,27 @@ class DataProcessor(object):
                 timeslot = to_unix_seconds(params['time_eos'])
                 if not os.path.exists(rrd_fname):
                     rrd.create(rrd_fname,
-                               '--start', str(timeslot - 900),
+                               '--start', str(timeslot - rrd_steps),
                                # step size 900s=15min
                                # each step represents one time slot
-                               '--step', '900',
-                               ['DS:epi2product:GAUGE:900:U:U',
-                                'DS:timeslot2product:GAUGE:900:U:U'],
+                               '--step', str(rrd_steps),
+                               ['DS:epi2product:GAUGE:' + str(rrd_steps) + ':U:U',
+                                'DS:timeslot2product:GAUGE:' + str(rrd_steps) + ':U:U'],
                                'RRA:MAX:0.5:1:1',
                                # keep 15 min max for 1 day
-                               'RRA:MAX:0.5:1:96',
+                               'RRA:MAX:0.5:1:1d',
                                # hourly average over 7 days
-                               'RRA:AVERAGE:0.5:4:168',
+                               'RRA:AVERAGE:0.5:1h:7d',
                                # hourly maximum over 90 days
-                               'RRA:MAX:0.5:4:168',
+                               'RRA:MAX:0.5:1h:7d',
                                # hourly minimum over 90 days
-                               'RRA:MIN:0.5:4:168',
+                               'RRA:MIN:0.5:1h:7d',
                                # daily average over 90 days
-                               'RRA:AVERAGE:0.5:96:90',
+                               'RRA:AVERAGE:0.5:1d:90d',
                                # daily maximum over 90 days
-                               'RRA:MAX:0.5:96:90',
+                               'RRA:MAX:0.5:1d:90d',
                                # daily minimum over 90 days
-                               'RRA:MIN:0.5:96:90')
+                               'RRA:MIN:0.5:1d:90d')
 
                 skip = False
                 try:
@@ -268,8 +160,8 @@ class DataProcessor(object):
                 if skip is False:
                     try:
                         update_stmt = str(timeslot) +\
-                            ':'+str(int(t_product - t_epi)) +\
-                            ':'+str(int(t_product - timeslot))
+                            ':' + str(int(t_product - t_epi)) +\
+                            ':' + str(int(t_product - timeslot))
                         LOGGER.debug(
                             "rrd update %s %s" % (rrd_fname, update_stmt))
                         rrd.update(rrd_fname, update_stmt)
@@ -282,19 +174,36 @@ class DataProcessor(object):
     def run(self, product_config, msg, config_dir):
         """Process the data
         """
-        LOGGER.info('New data available: %s', msg.data['uri'])
-
+        LOGGER.info('New data available: type = %s', msg.type)
+        
         self._data_ok = True
         self.set_config(product_config)
         self.layout_handler = LayoutHandler(product_config, config_dir)
+        
+        if msg.type in ['dataset']:
+            for ds_proc in self.dataset_processors:
+                if re.match(ds_proc['msg_subject_pattern'], msg.subject):
+                    module_name, function_name = ds_proc['processing_function'].split('|')
+                    func = get_custom_function(module_name, function_name)
+                    geo_img = func(msg)
+                    in_filename_base = ds_proc['output_name']
+                    in_filename = None
+                    break
+            if geo_img is None:
+                LOGGER.warning("no image created by dataset_processpor")
+        else:
+            geo_img = None
 
-        p = urlparse(msg.data['uri'])
-        if p.netloc != '':
-            LOGGER.error('uri not supported: {0}'.format(msg.data['uri']))
-            return
-
-        in_filename = p.path
-        in_filename_base = os.path.basename(in_filename)
+            LOGGER.info('uri: %s', msg.data['uri'])
+            
+            p = urlparse(msg.data['uri'])
+            if p.netloc != '':
+                LOGGER.error('uri not supported: {0}'.format(msg.data['uri']))
+                return
+    
+            in_filename = p.path
+            in_filename_base = os.path.basename(in_filename)
+            
         rules_to_apply = []
         rules_to_apply_groups = set()
         copy_src_file_only = True
@@ -325,10 +234,10 @@ class DataProcessor(object):
             area = get_area_def(msg.data['area']['name'])
 
             # load image only when necessary
-            geo_img = None
-            if not copy_src_file_only:
-                geo_img = self.read_image(in_filename, area,
-                                          msg.data['time_eos'])
+            if geo_img is None:
+                if not copy_src_file_only:
+                    geo_img = read_image(in_filename, area,
+                                         msg.data['time_eos'])
 
             # and apply each rule
             for rule in rules_to_apply:
@@ -345,9 +254,11 @@ class DataProcessor(object):
                     os.makedirs(self.rrd_dir)
                 rrd_fname = self.create_filename(re.sub(r"\{time.*\}",
                                                         "xx",
-                                                        fname_pattern) + ".rrd",
+                                                        fname_pattern) +
+                                                 ".rrd",
                                                  self.rrd_dir,
                                                  params)
+                rrd_steps = int(rule.get('rrd_steps', '900'))
 
                 # todo:  layouting etc
 #                 try:
@@ -355,18 +266,19 @@ class DataProcessor(object):
 #                 except ValueError as e:
 #                     LOGGER.error("Layouting failed: " + str(e))
                 if rule.get('copySrcFileOnly', 'false').lower() in ["true",
-                                                                        "yes",
-                                                                        "1"]:
+                                                                    "yes",
+                                                                    "1"]:
                     # copy inputput file only
                     rule_geo_img = None
                 else:
                     rule_geo_img = geo_img
-                    
+
                 self.writer.write(self.save_img,
                                   rule_geo_img,
                                   in_filename,
                                   fname,
                                   rrd_fname,
+                                  rrd_steps,
                                   params)
 
             LOGGER.info('pr %.1f s', (time.time() - t1a))
@@ -437,7 +349,7 @@ class DataProcessor(object):
             product_name = params['productname']
         else:
             print "no product_name key"
-        
+
         # special addition to simplify rules
         params['productname_no_underscore'] =\
             product_name.replace('_', '')
@@ -480,6 +392,13 @@ class DataProcessor(object):
                 resolved_params[k] = v
 
         return resolved_params
+
+
+def get_custom_function(module_name, function_name):
+    """Get the home made methods for building composites for a given satellite
+    or instrument *name*.
+    """
+    return getattr(__import__(module_name, globals(), locals(), [function_name]), function_name)
 
 
 class DataWriter(Thread):
@@ -668,7 +587,7 @@ class PostProcessor(object):
 
             # For 'file' type messages, update product config and run
             # production
-            if msg.type == "file":
+            if msg.type in ["file", "dataset"]:
                 self.update_product_config(
                     self.td_config['product_config_file'],
                     self.td_config['config_item'])

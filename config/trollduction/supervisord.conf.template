@@ -99,6 +99,65 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 ; eventlistener: sections to be able to handle event notifications
 ; sent by supervisor.
 
+
+
+
+; WORLD COMPOSITE BEGIN
+
+[program:trollstalker-goes13]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_goes13    
+process_name=trollduction-trollstalker-goes13
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:trollstalker-goes15]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_goes15   
+process_name=trollduction-trollstalker-goes15
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+
+[program:l2processor-goes13]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_goes13
+process_name=trollduction-l2processor-goes13
+priority=6                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:l2processor-goes15]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_goes15
+process_name=trollduction-l2processor-goes15
+priority=6                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+
+[program:seggather-worldcomp]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp
+process_name=trollduction-seggather-worldcomp
+priority=7                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+; WORLD COMPOSITE END
+
+
+
+
+
+
 [group:trollduction]
 programs=nameserver,trollstalker,l2processor,postprocessor  ; each refers to 'x' in [program:x] definitions
 ;programs=nameserver,trollstalker,l2processor,l2processor_b,postprocessor
