@@ -382,6 +382,7 @@ def dwd_RGB_12_12_1_N(self):
              (0, 100),
              (0, 100)))
         img.enhance(gamma=(1.3, 1.3, 1.3))
+        merge_masks(img)
         return img
 
     if img_type == IMAGETYPES.NIGHT_ONLY:
@@ -451,13 +452,15 @@ def dwd_RGB_12_12_9i_N(self):
     img_type = self._dwd_get_image_type()
     if img_type is None:
         return None
-
+    
     if img_type == IMAGETYPES.DAY_ONLY:
-        return self._dwd_create_RGB_image(
+        img = self._dwd_create_RGB_image(
             (hrvc_chn.data, hrvc_chn.data, self[10.8].data),
             ((0, 100),
              (0, 100),
              (323 - CONVERSION, 203 - CONVERSION)))
+        merge_masks(img)
+        return img
 
     if img_type == IMAGETYPES.NIGHT_ONLY:
         img = self._dwd_create_RGB_image(
@@ -963,6 +966,13 @@ def hist_normalize_linear(data, new_min, new_max):
     return scaled
 
 
+def merge_masks(img):
+    """creates common mask and sets it to each channel
+    """
+    common_mask = reduce(np.ma.mask_or,
+                         [ch.mask for ch in img.channels])
+    for ch in img.channels:
+        ch.mask = common_mask
 
 
 seviri = [
