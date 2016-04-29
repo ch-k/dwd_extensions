@@ -51,18 +51,18 @@ def _dwd_create_single_channel_image(self, chn):
     # apply calibrations and corrections on channels
     if not self._dwd_channel_preparation(chn):
         return None
-
+            
     if self._is_solar_channel(chn):
         return geo_image.GeoImage(self[chn].data,
                                   self.area,
-                                  self.time_slot,
+                                  get_first(self.time_slot),
                                   fill_value=0,
                                   mode="L",
                                   crange=(0, 125))
 
     return geo_image.GeoImage(self[chn].data,
                               self.area,
-                              self.time_slot,
+                              get_first(self.time_slot),
                               fill_value=0,
                               mode="L",
                               crange=(40, -87.5))
@@ -75,7 +75,7 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
             self[chn].info.get("sun_zen_corrected", None) is None:
         if self.area.lons is None or self.area.lats is None:
             self.area.lons, self.area.lats = self.area.get_lonlats()
-        sun_zen_chn = self[chn].sunzen_corr(self.time_slot, limit=85.)
+        sun_zen_chn = self[chn].sunzen_corr(get_first(self.time_slot), limit=85.)
         self[chn].data = sun_zen_chn.data.copy()
         del(sun_zen_chn)
 
@@ -99,7 +99,7 @@ def _dwd_kelvin_to_celsius(self, chn):
     """Apply Kelvin to Celsius conversion on infrared channels.
     """
     if not self._is_solar_channel(chn) and \
-            (self[chn].info['units'] in ['K', 'degree Kelvin'] or self[chn].unit == 'K'):
+            (self[chn].info['units'] in ['K', 'degree Kelvin', 'KELVIN'] or self[chn].unit == 'K'):
         self[chn].data -= CONVERSION
         self[chn].info['units'] = self[chn].unit = 'C'
 
@@ -148,7 +148,7 @@ def _dwd_get_sun_zenith_angles_channel(self):
         for start in xrange(0, sun_zen_chn_data.shape[1], q):
             sun_zen_chn_data[
                 :, start: start + q] = sza(
-                self.time_slot, self.area.lons[:, start: start + q],
+                get_first(self.time_slot), self.area.lons[:, start: start + q],
                 self.area.lats[:, start: start + q])
         sun_zen_chn = Channel(name="SUN_ZEN_CHN",
                               data=sun_zen_chn_data)
@@ -242,14 +242,14 @@ def _dwd_create_RGB_image(self, channels, cranges):
     if len(channels) == 3:
         return geo_image.GeoImage(channels,
                                   self.area,
-                                  self.time_slot,
+                                  get_first(self.time_slot),
                                   fill_value=(0, 0, 0),
                                   mode="RGB",
                                   crange=cranges)
     if len(channels) == 4:
         return geo_image.GeoImage(channels,
                                   self.area,
-                                  self.time_slot,
+                                  get_first(self.time_slot),
                                   fill_value=(0, 0, 0, 0),
                                   mode="RGBA",
                                   crange=cranges)
@@ -645,7 +645,7 @@ def dwd_Fernsehbild(self):
 
     day_img = geo_image.GeoImage(hist_equalize(hrvc_clouds, 8, 254),
                                  self.area,
-                                 self.time_slot,
+                                 get_first(self.time_slot),
                                  fill_value=0,
                                  mode="L",
                                  crange=(0, 255))
@@ -667,7 +667,7 @@ def dwd_Fernsehbild(self):
     median = np.ma.median(ir_clouds)
     night_img = geo_image.GeoImage(hist_equalize(ir_clouds, 8, 254),
                                    self.area,
-                                   self.time_slot,
+                                   get_first(self.time_slot),
                                    fill_value=0,
                                    mode="L",
                                    crange=(255, 0))
@@ -766,7 +766,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     day_img = geo_image.GeoImage(d,
                                  self.area,
-                                 self.time_slot,
+                                 get_first(self.time_slot),
                                  fill_value=0,
                                  mode="L",
                                  crange=(0, 255))
@@ -792,7 +792,7 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     night_img = geo_image.GeoImage(d,
                                    self.area,
-                                   self.time_slot,
+                                   get_first(self.time_slot),
                                    fill_value=0,
                                    mode="L",
                                    crange=(0, 255))
@@ -975,6 +975,12 @@ def merge_masks(img):
         ch.mask = common_mask
 
 
+def get_first(val):
+    if isinstance(val, (list, tuple, set)):
+        return val[0]
+    return val
+
+
 seviri = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
@@ -987,6 +993,7 @@ seviri = [
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
     dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild,
     dwd_FernsehbildRGBA, _create_fernsehbild_rgba]
+
 
 def dwd_ninjo_GOES_10_7(self):
     return self._dwd_create_single_channel_image('10_7')
@@ -1003,3 +1010,31 @@ imager13 = [
     dwd_ninjo_GOES_10_7]
 
 imager15 = imager13
+
+
+def dwd_ninjo_MTP_11_5(self):
+    return self._dwd_create_single_channel_image('11_5')
+
+dwd_ninjo_MTP_11_5.prerequisites = set(['11_5'])
+
+mviri = [
+    _is_solar_channel, _dwd_kelvin_to_celsius,
+    _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
+    _dwd_apply_view_zenith_angle_correction,
+    _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
+    _dwd_get_alpha_channel, _dwd_get_image_type,
+    dwd_ninjo_MTP_11_5]
+
+
+def dwd_ninjo_H8_IR1(self):
+    return self._dwd_create_single_channel_image('IR1')
+
+dwd_ninjo_H8_IR1.prerequisites = set(['IR1'])
+
+ahi = [
+    _is_solar_channel, _dwd_kelvin_to_celsius,
+    _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
+    _dwd_apply_view_zenith_angle_correction,
+    _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
+    _dwd_get_alpha_channel, _dwd_get_image_type,
+    dwd_ninjo_H8_IR1]
