@@ -64,30 +64,30 @@ stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
                  
 
-[program:trollstalker]
+[program:trollstalker-msg-hrit]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION%    
-process_name=trollduction-trollstalker
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_msg_hrit
+process_name=trollduction-trollstalker-msg-hrit
 priority=2                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
-[program:l2processor]
+[program:l2processor-msg-hrit]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION% -N %(process_num)s    
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_msg_hrit -N %(process_num)s    
 process_name=trollduction-l2processor-%(process_num)s
 priority=3                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stderr.log
-numprocs=4
+numprocs=5
 
 
 
 [program:postprocessor]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %POSTPROCESSORPATH% -c %MASTERCONFIGPATH% -C %MASTERCONFIGSECTION%    
+command=%PYTHONBIN% %POSTPROCESSORPATH% -c %MASTERCONFIGPATH% -C postproc    
 process_name=trollduction-postprocessor
 priority=4                  
 startsecs=3            
@@ -122,6 +122,23 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+[program:trollstalker-himawari8]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_himawari8
+process_name=trollduction-trollstalker-himawari8
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:trollstalker-mtp]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_mtp
+process_name=trollduction-trollstalker-mtp
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 [program:l2processor-goes13]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
@@ -141,11 +158,38 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
-
-[program:seggather-worldcomp]
+[program:l2processor-himawari8]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp
-process_name=trollduction-seggather-worldcomp
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_himawari8
+process_name=trollduction-l2processor-himawari8
+priority=6                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:l2processor-mtp]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_mtp
+process_name=trollduction-l2processor-mtp
+priority=6                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+
+[program:seggather-worldcomp-wcm3km]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wcm3km
+process_name=trollduction-seggather-worldcomp-wcm3km
+priority=7                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:seggather-worldcomp-wwwWcm40km]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wwwWcm40km
+process_name=trollduction-seggather-worldcomp-wwwWcm40km
 priority=7                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
@@ -159,8 +203,8 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 
 [group:trollduction]
-programs=nameserver,trollstalker,l2processor,postprocessor  ; each refers to 'x' in [program:x] definitions
-;programs=nameserver,trollstalker,l2processor,l2processor_b,postprocessor
+programs=nameserver,trollstalker-msg-hrit,l2processor-msg-hrit,postprocessor,trollstalker-goes13,trollstalker-goes15,trollstalker-himawari8,trollstalker-mtp,l2processor-goes13,l2processor-goes15,l2processor-himawari8,l2processor-mtp
+; each refers to 'x' in [program:x] definitions
 ;priority=999                  ; the relative start priority (default 999)
 
 ; example eventlistener to demonstrate calling of maintenance scripts

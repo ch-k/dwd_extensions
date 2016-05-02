@@ -12,9 +12,21 @@
     </common>
     
     <product_list>
+      
+	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="4">
+		<product id="dwd_ninjo_IR_108" name="IR_108">
+		    <file>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+		</product>
+	    </area>
+	    
+	    <area id="wcm3km" name="wcm3km" process_num="4">
+		<product id="dwd_ninjo_IR_108" name="IR_108">
+		    <file>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+		</product>
+	    </area>
     
-    	<area id="nq0001km" name="nq0001km" process_num="0">
-    	
+	    <area id="nq0001km" name="nq0001km" process_num="0">
+	
 	        <product id="dwd_ninjo_HRV" name="HRV" >
 	            <file>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
@@ -308,13 +320,13 @@
             <output_dir id="out_box_dir_worldcomposite"></output_dir>
         </out_box>
 
-		<dataset_processor>
-        	<msg_subject_pattern>.*WORLDCOMP</msg_subject_pattern>
-	  		<processing_function>dwd_extensions.tools.dataset_processors|create_world_composite</processing_function>
-	  		<output_name>worldcomposite</output_name>
+	<dataset_processor>
+	    <msg_subject_pattern>.*WORLDCOMP</msg_subject_pattern>
+	    <processing_function>dwd_extensions.tools.dataset_processors|create_world_composite</processing_function>
+	    <output_name>worldcomposite</output_name>
         </dataset_processor>
 	
-		<rule>
+	<rule>
             <input_pattern>worldcomposite</input_pattern>
             <out_box_ref>worldcomposite</out_box_ref>
             <dest_filename>worldcomposite_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
