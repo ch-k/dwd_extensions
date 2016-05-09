@@ -228,3 +228,7 @@ events=TICK_60
 [eventlistener:copyafd]
 command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_copy_afd.sh
 events=TICK_60
+
+[eventlistener:formatconverter]
+command=%SUPERVISOREVENTLAUNCHERPATH% %TOOLSDIR%/evt_listener_format_converter.sh
+events=TICK_60
