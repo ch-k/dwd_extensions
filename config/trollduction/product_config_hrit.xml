@@ -303,6 +303,10 @@
             <name>warnapp</name>
             <output_dir id="out_box_dir_warnapp">/home/pytroll/OUTBOXES/warnapp/{time_eos:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/</output_dir>
         </out_box>
+        <out_box>
+            <name>rosenow</name>
+            <output_dir id="out_box_dir_rosenow">/home/pytroll/OUTBOXES/rosenow/{time_eos:%Y-%m-%d}/{platform_name}/{productname}/{areaname}/</output_dir>
+        </out_box>
 
         <!-- NINJO -->
 
@@ -627,7 +631,29 @@
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
+	<!-- ROSENOW -->
+        <rule>
+            <input_pattern>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_.*</input_pattern>
+            <dest_filename>SatWetter_METEOSAT_EUROPA_ZENTRAL_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>rosenow</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
 
+        <rule>
+            <input_pattern>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_.*</input_pattern>
+            <dest_filename>SatWetter_METEOSAT_EUROPA_GESAMT_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>rosenow</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
+
+	
+	<!-- INTERNET -->
+	<rule>
+            <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-1-N_nqeuro1km_.*</input_pattern>
+            <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>browser</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
 
         <!-- quicklook -->
         <!-- 
