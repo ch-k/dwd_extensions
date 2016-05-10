@@ -41,8 +41,6 @@ from trollsift import Parser
 from urlparse import urlparse
 
 from dwd_extensions.tools.image_io import read_image
-import mpop.imageo.geo_image as geo_image
-import numpy as np
 import trollduction.helper_functions as helper_functions
 try:
     import rrdtool as rrd
@@ -74,7 +72,7 @@ class DataProcessor(object):
         self.out_boxes = dict()
         self.rules = []
         self.dataset_processors = []
-        
+
         for key, values in product_config['post_processing'].iteritems():
             if key == 'rrd_dir':
                 self.rrd_dir = values
@@ -95,7 +93,8 @@ class DataProcessor(object):
                         else:
                             self.dataset_processors.append(value)
 
-    def save_img(self, geo_img, src_fname, dest_fname, rrd_fname, rrd_steps, params):
+    def save_img(self, geo_img, src_fname, dest_fname,
+                 rrd_fname, rrd_steps, params):
         save_params = self.get_save_arguments(params)
         dest_dir = os.path.dirname(dest_fname)
         # first write to file with prefix "." (to ensure that
@@ -175,15 +174,16 @@ class DataProcessor(object):
         """Process the data
         """
         LOGGER.info('New data available: type = %s', msg.type)
-        
+
         self._data_ok = True
         self.set_config(product_config)
         self.layout_handler = LayoutHandler(product_config, config_dir)
-        
+
         if msg.type in ['dataset']:
             for ds_proc in self.dataset_processors:
                 if re.match(ds_proc['msg_subject_pattern'], msg.subject):
-                    module_name, function_name = ds_proc['processing_function'].split('|')
+                    module_name, function_name = \
+                        ds_proc['processing_function'].split('|')
                     func = get_custom_function(module_name, function_name)
                     geo_img = func(msg)
                     in_filename_base = ds_proc['output_name']
@@ -195,15 +195,15 @@ class DataProcessor(object):
             geo_img = None
 
             LOGGER.info('uri: %s', msg.data['uri'])
-            
+
             p = urlparse(msg.data['uri'])
             if p.netloc != '':
                 LOGGER.error('uri not supported: {0}'.format(msg.data['uri']))
                 return
-    
+
             in_filename = p.path
             in_filename_base = os.path.basename(in_filename)
-            
+
         rules_to_apply = []
         rules_to_apply_groups = set()
         copy_src_file_only = True
@@ -423,7 +423,10 @@ class DataWriter(Thread):
             except Queue.Empty:
                 pass
             else:
-                fun(*args, **kwargs)
+                try:
+                    fun(*args, **kwargs)
+                except BaseException:
+                    LOGGER.exception("Unexpected error")
                 fun = None
                 args = None
                 kwargs = None
@@ -588,12 +591,13 @@ class PostProcessor(object):
             # For 'file' type messages, update product config and run
             # production
             if msg.type in ["file", "dataset"]:
-                self.update_product_config(
-                    self.td_config['product_config_file'],
-                    self.td_config['config_item'])
-                self.data_processor.run(
-                    self.product_config,
-                    msg,
-                    os.path.dirname(self.td_config['product_config_file']))
-#            else:
-#                LOGGER.debug("Message type was %s" % msg.type)
+                try:
+                    self.update_product_config(
+                        self.td_config['product_config_file'],
+                        self.td_config['config_item'])
+                    self.data_processor.run(
+                        self.product_config,
+                        msg,
+                        os.path.dirname(self.td_config['product_config_file']))
+                except BaseException:
+                    LOGGER.exception("Unexpected error")
