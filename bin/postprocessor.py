@@ -25,7 +25,6 @@
 ./postprocessor.py -c /path/to/master_config.ini -C noaa_hrpt
 """
 
-from dwd_extensions.trollduction.postprocessor import PostProcessor
 import argparse
 import logging
 import logging.config
@@ -34,6 +33,7 @@ import signal
 import sys
 import os
 import time
+from dwd_extensions.trollduction.postprocessor import PostProcessor
 
 if __name__ == '__main__':
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     except NoOptionError:
         logging.basicConfig()
     else:
-        logging.config.fileConfig(log_config)
+        logging.config.fileConfig(log_config, disable_existing_loggers=False)
 
     logger = logging.getLogger("postprocessor")
 
