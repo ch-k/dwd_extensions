@@ -692,6 +692,16 @@
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
+	<rule>
+            <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
+            <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>browser</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule>
+
+
+
+
         <!-- quicklook -->
         <!-- 
         <rule>
