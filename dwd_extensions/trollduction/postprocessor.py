@@ -142,7 +142,10 @@ class DataProcessor(object):
 
                 skip = False
                 try:
-                    t_epi = os.path.getmtime(params['source_uri'])
+                    if isinstance(params['source_uri'], basestring):
+                        t_epi = os.path.getmtime(params['source_uri'])
+                    else:
+                        t_epi = max([os.path.getmtime(entry) for entry in params['source_uri']])
                 except Exception as e:
                     LOGGER.error(
                         "Could not read modification time of {0} ({1})".format(

@@ -64,6 +64,10 @@ stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
                  
 
+; --------------------------------------------------
+; ---------- Meteosat 10 ---------------------------
+; --------------------------------------------------
+
 [program:trollstalker-msg-hrit]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_msg_hrit
@@ -104,6 +108,9 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 ; WORLD COMPOSITE BEGIN
 
+; --------------------------------------------------
+; ---------- GOES 13 -------------------------------
+; --------------------------------------------------
 [program:trollstalker-goes13]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_goes13    
@@ -113,29 +120,11 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
-[program:trollstalker-goes15]
+[program:seggather-goes13]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_goes15   
-process_name=trollduction-trollstalker-goes15
-priority=5                  
-startsecs=3
-stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
-stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
-
-[program:trollstalker-himawari8]
-environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_himawari8
-process_name=trollduction-trollstalker-himawari8
-priority=5                  
-startsecs=3
-stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
-stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
-
-[program:trollstalker-mtp]
-environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_mtp
-process_name=trollduction-trollstalker-mtp
-priority=5                  
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_goes13
+process_name=trollduction-seggather-goes13
+priority=7                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
@@ -149,11 +138,44 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+; --------------------------------------------------
+; ---------- GOES 15 -------------------------------
+; --------------------------------------------------
+[program:trollstalker-goes15]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_goes15   
+process_name=trollduction-trollstalker-goes15
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:seggather-goes15]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_goes15
+process_name=trollduction-seggather-goes15
+priority=7                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
 [program:l2processor-goes15]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_goes15
 process_name=trollduction-l2processor-goes15
 priority=6                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+; --------------------------------------------------
+; ---------- Himawari 8-----------------------------
+; --------------------------------------------------
+[program:trollstalker-himawari8]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_himawari8
+process_name=trollduction-trollstalker-himawari8
+priority=5                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
@@ -167,6 +189,28 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+
+; --------------------------------------------------
+; ---------- MTP -----------------------------------
+; --------------------------------------------------
+[program:trollstalker-mtp]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %TROLLSTALKERPATH% -c %MASTERCONFIGPATH% -C stalker_mtp
+process_name=trollduction-trollstalker-mtp
+priority=5                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+[program:seggather-mtp]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_mtp
+process_name=trollduction-seggather-mtp
+priority=7                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
 [program:l2processor-mtp]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_mtp
@@ -176,6 +220,11 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+
+
+; --------------------------------------------------
+; ---------- Common --------------------------------
+; --------------------------------------------------
 
 [program:seggather-worldcomp-wcm3km]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
@@ -200,10 +249,8 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 
 
-
-
 [group:trollduction]
-programs=nameserver,trollstalker-msg-hrit,l2processor-msg-hrit,postprocessor,trollstalker-goes13,trollstalker-goes15,trollstalker-himawari8,trollstalker-mtp,l2processor-goes13,l2processor-goes15,l2processor-himawari8,l2processor-mtp
+programs=nameserver,trollstalker-msg-hrit,l2processor-msg-hrit,postprocessor,trollstalker-goes13,seggather-goes13,l2processor-goes13,trollstalker-goes15,seggather-goes15,l2processor-goes15,trollstalker-himawari8,l2processor-himawari8,trollstalker-mtp,seggather-mtp,l2processor-mtp
 ; each refers to 'x' in [program:x] definitions
 ;priority=999                  ; the relative start priority (default 999)
 
