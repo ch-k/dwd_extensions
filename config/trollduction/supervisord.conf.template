@@ -180,6 +180,15 @@ startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
+[program:seggather-himawari8]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_himawari8
+process_name=trollduction-seggather-himawari8
+priority=7                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
 [program:l2processor-himawari8]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_himawari8
