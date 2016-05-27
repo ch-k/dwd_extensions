@@ -49,14 +49,20 @@ def create_world_composite(msg):
 
 
 def _create_world_composite(items):
-    erosion_size = 30
-    smooth_sigma = 5
+    erosion_size = 20
+#     smooth_sigma = 4
+    smooth_width = 20
+    
     img = None
     for (path, area, timeslot) in items:
         next_img = read_image(path, area, timeslot)
         if img is None:
             img = next_img
         else:
+            scaled_erosion_size = erosion_size * (float(img.width) / 1000.0)
+#             scaled_smooth_sigma = smooth_sigma * (float(img.width) / 1000.0)
+            scaled_smooth_width = smooth_width * (float(img.width) / 1000.0)
+            
             img_mask = reduce(np.ma.mask_or,
                               [chn.mask for chn in img.channels])
             next_img_mask = reduce(np.ma.mask_or,
@@ -65,9 +71,12 @@ def _create_world_composite(items):
             alpha = np.ones(next_img_mask.shape, dtype='float')
             alpha[next_img_mask] = 0.0
 
-            smooth_alpha = ndi.gaussian_filter(
-                ndi.grey_erosion(alpha, size=(erosion_size, erosion_size)),
-                smooth_sigma)
+#             smooth_alpha = ndi.gaussian_filter(
+#                 ndi.grey_erosion(alpha, size=(scaled_erosion_size, scaled_erosion_size)),
+#                 scaled_smooth_sigma)
+            smooth_alpha = ndi.uniform_filter(
+                ndi.grey_erosion(alpha, size=(scaled_erosion_size, scaled_erosion_size)),
+                scaled_smooth_width)
             smooth_alpha[img_mask] = alpha[img_mask]
 
             for i in range(0, min(len(img.channels), len(next_img.channels))):
@@ -77,7 +86,7 @@ def _create_world_composite(items):
                 img.channels[i] = \
                     np.ma.masked_where(chmask, chdata)
 #             show(img.channels[i])
-
+#     img.save("/vagrant/wc_{0}_{1}_uniform.png".format(scaled_erosion_size, scaled_smooth_width))
     return img
 
 # def show(ch):
