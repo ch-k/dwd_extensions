@@ -4,30 +4,26 @@
         <filename>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
         </filename>
         <precompute>True</precompute>
-        
-       	<repl_fill_val_in_data>1</repl_fill_val_in_data>
+
+        <repl_fill_val_in_data>1</repl_fill_val_in_data>
     </common>
     <product_list>
-    
-    <!--	<area id="nq135W3km" name="nq135W3km">
-	      <product id="dwd_ninjo_H8_IR1" name="IR1">
-		  <file>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
-	      </product>
-      </area> -->
-	    
-	<area id="wwwWcm40km" name="wwwWcm40km">
-	  <product id="dwd_ninjo_H8_IR1" name="IR1">
-	      <file>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
-	  </product>
-	</area>
-	
-	<area id="wcm3km" name="wcm3km">
-	  <product id="dwd_ninjo_H8_IR1" name="IR1">
-	      <file>{platform_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
-	  </product>
-	</area>
 
-	
+        <area id="wwwWcm40km" name="wwwWcm40km">
+            <product id="dwd_ninjo_H8_IR1" name="IR1">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
+
+        <area id="wcm3km" name="wcm3km">
+            <product id="dwd_ninjo_H8_IR1" name="IR1">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
+
+
     </product_list>
-    
+
 </product_config>

@@ -26,26 +26,28 @@
 '''
 
 import Queue
-import datetime
-from dwd_extensions.layout import LayoutHandler
-from dwd_extensions.tools.config_watcher import ConfigWatcher
 import logging
-from mpop.projector import get_area_def
-import os
-import re
 import shutil
 from threading import Thread
-import time
-from trollduction.listener import ListenerContainer
-from trollsift import Parser
 from urlparse import urlparse
+import datetime
+import os
+import re
+import time
 
-from dwd_extensions.tools.image_io import read_image
-import trollduction.helper_functions as helper_functions
 try:
     import rrdtool as rrd
 except ImportError:
     rrd = None
+
+from mpop.projector import get_area_def
+from trollsift import Parser, parse
+from trollduction.listener import ListenerContainer
+import trollduction.helper_functions as helper_functions
+
+from dwd_extensions.layout import LayoutHandler
+from dwd_extensions.tools.config_watcher import ConfigWatcher
+from dwd_extensions.tools.image_io import read_image
 
 LOGGER = logging.getLogger("postprocessor")
 
@@ -185,6 +187,13 @@ class DataProcessor(object):
         if msg.type in ['dataset']:
             for ds_proc in self.dataset_processors:
                 if re.match(ds_proc['msg_subject_pattern'], msg.subject):
+                    vps = ds_proc.get('var_parse', [])
+                    if not isinstance(vps, list):
+                        vps = [vps]
+                    for vp in vps:
+                        new_vals = parse(vp['parse_pattern'],msg.data[vp['msg_key']])
+                        msg.data.update(new_vals)
+                       
                     module_name, function_name = \
                         ds_proc['processing_function'].split('|')
                     func = get_custom_function(module_name, function_name)

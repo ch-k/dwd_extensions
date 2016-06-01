@@ -235,19 +235,19 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 ; ---------- Common --------------------------------
 ; --------------------------------------------------
 
-[program:seggather-worldcomp-wcm3km]
+[program:seggather-worldcomp-wcm3km-ir]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wcm3km
-process_name=trollduction-seggather-worldcomp-wcm3km
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wcm3km_ir
+process_name=trollduction-seggather-worldcomp-wcm3km-ir
 priority=7                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
-[program:seggather-worldcomp-wwwWcm40km]
+[program:seggather-worldcomp-wwwWcm40km-ir]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
-command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wwwWcm40km
-process_name=trollduction-seggather-worldcomp-wwwWcm40km
+command=%PYTHONBIN% %SEGMENTGATHERERPATH% -c %MASTERCONFIGPATH% -C seg_gatherer_world_comp_wwwWcm40km_ir
+process_name=trollduction-seggather-worldcomp-wwwWcm40km-ir
 priority=7                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
