@@ -264,9 +264,9 @@ class DataProcessor(object):
 
                 if not os.path.exists(self.rrd_dir):
                     os.makedirs(self.rrd_dir)
-                rrd_fname = self.create_filename(re.sub(r"\{time.*\}",
+                rrd_fname = self.create_filename(re.sub(r"\{[^\}]*:\%[^\}]*\}",
                                                         "xx",
-                                                        fname_pattern) +
+                                                        os.path.basename(fname_pattern)) +
                                                  ".rrd",
                                                  self.rrd_dir,
                                                  params)
@@ -331,11 +331,12 @@ class DataProcessor(object):
         if 'blocksize' not in save_kwords:
             save_kwords['blocksize'] = 0
 
-        if 'inv_def_temperature_cmap' not in save_kwords:
-            save_kwords['inv_def_temperature_cmap'] = False
+        if 'ninjotiff' in save_kwords['fformat']:
+            if 'inv_def_temperature_cmap' not in save_kwords:
+                save_kwords['inv_def_temperature_cmap'] = False
 
-        if 'omit_filename_path' not in save_kwords:
-            save_kwords['omit_filename_path'] = True
+            if 'omit_filename_path' not in save_kwords:
+                save_kwords['omit_filename_path'] = True
 
         return save_kwords
 

@@ -356,6 +356,7 @@
             <out_box_ref>worldcomposite_browser</out_box_ref>
             <dest_filename>IR/WCM_IR_{areaname}_{dataset_time:%Y%m%d%H%M}.tif</dest_filename>
             <rrd_steps>3600</rrd_steps>
+            <format>tif</format>
         </rule>     
 	
     
