@@ -43,7 +43,8 @@ def create_world_composite(msg):
             return None
 
         area = get_area_def(msg.data['area']['name'])
-        items.append((url.path, area, msg.data['time_eos']))
+        t_gatherer = datetime.datetime.strptime(msg.data['gatherer_time'], '%Y%m%d%H%M%S')
+        items.append((url.path, area, t_gatherer))
 
     return _create_world_composite(items)
 
