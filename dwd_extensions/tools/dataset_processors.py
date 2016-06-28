@@ -26,6 +26,7 @@ import numpy as np
 import scipy.ndimage as ndi
 from mpop.projector import get_area_def
 from dwd_extensions.tools.image_io import read_image
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 
