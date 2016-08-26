@@ -4,19 +4,19 @@
         <filename>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
         </filename>
         <precompute>True</precompute>
-
+	<srch_radius>10000</srch_radius>
         <repl_fill_val_in_data>1</repl_fill_val_in_data>
     </common>
     <product_list>
 
-        <area id="wwwWcm40km" name="wwwWcm40km">
+        <area id="wwwWcm40km" name="wwwWcm40km" srch_radius="70000">
             <product id="dwd_ninjo_H8_IR1" name="IR1">
                 <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
                 </file>
             </product>
         </area>
 
-        <area id="wcm3km" name="wcm3km">
+        <area id="wcm3km" name="wcm3km" srch_radius="70000">
             <product id="dwd_ninjo_H8_IR1" name="IR1">
                 <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
                 </file>
