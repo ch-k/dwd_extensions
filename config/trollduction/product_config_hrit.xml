@@ -332,8 +332,8 @@
             <output_dir id="out_box_dir_worldcomposite_browser"></output_dir>
         </out_box>
         <out_box>
-            <name>rosenow</name>
-            <output_dir id="out_box_dir_rosenow"></output_dir>
+            <name>autoradsatw</name>
+            <output_dir id="out_box_dir_autoradsatw"></output_dir>
         </out_box>
 
         <dataset_processor>
@@ -722,18 +722,18 @@
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
-	<!-- ROSENOW -->
+	<!-- AUTORADSATW -->
         <rule>
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_.*</input_pattern>
             <dest_filename>SatWetter_METEOSAT_EUROPA_ZENTRAL_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
-            <out_box_ref>rosenow</out_box_ref>
+            <out_box_ref>autoradsatw</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
         <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_.*</input_pattern>
             <dest_filename>SatWetter_METEOSAT_EUROPA_GESAMT_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
-            <out_box_ref>rosenow</out_box_ref>
+            <out_box_ref>autoradsatw</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
