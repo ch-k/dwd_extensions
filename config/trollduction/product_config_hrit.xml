@@ -25,7 +25,7 @@
 		</product>
 	    </area>
     
-	    <area id="nq0001km" name="nq0001km" process_num="0">
+	    <area id="nq0001km" name="nq0001km" process_num="0" srch_radius="60000">
 	
 	        <product id="dwd_ninjo_HRV" name="HRV" >
 	            <file>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time_eos:%Y%m%d%H%M}.tif</file>
@@ -33,7 +33,7 @@
 	        
 	    </area>
 	       
-	    <area id="nq0003km" name="nq0003km" process_num="0">
+	    <area id="nq0003km" name="nq0003km" process_num="0" srch_radius="60000">
 	    
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
 	            <file>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
