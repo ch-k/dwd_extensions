@@ -386,7 +386,12 @@ def dwd_RGB_12_12_1_N(self):
         return img
 
     if img_type == IMAGETYPES.NIGHT_ONLY:
-        return self._dwd_create_single_channel_image('IR_108')
+        img = self._dwd_create_RGB_image(
+            (self[10.8].data, self[10.8].data, self[10.8].data),
+            ((40, -87.5),
+             (40, -87.5),
+             (40, -87.5)))
+        return img
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data = self._dwd_get_alpha_channel().data
