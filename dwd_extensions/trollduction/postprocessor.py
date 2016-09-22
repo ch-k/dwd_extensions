@@ -30,7 +30,7 @@ import logging
 import shutil
 from threading import Thread
 from urlparse import urlparse
-import datetime
+import datetime as dt
 import os
 import re
 import time
@@ -96,7 +96,7 @@ class DataProcessor(object):
                             self.dataset_processors.append(value)
 
     def save_img(self, geo_img, src_fname, dest_fname,
-                 rrd_fname, rrd_steps, params):
+                 rrd_fname, rrd_steps, timeslot, params):
         save_params = self.get_save_arguments(params)
         dest_dir = os.path.dirname(dest_fname)
         # first write to file with prefix "." (to ensure that
@@ -117,10 +117,10 @@ class DataProcessor(object):
         # writing performance data to rrd file
         if rrd is not None:
             if os.path.exists(dest_fname):
-                timeslot = to_unix_seconds(params['time_eos'])
+                timeslot_sec = to_unix_seconds(timeslot)
                 if not os.path.exists(rrd_fname):
                     rrd.create(rrd_fname,
-                               '--start', str(timeslot - rrd_steps),
+                               '--start', str(timeslot_sec - rrd_steps),
                                # step size 900s=15min
                                # each step represents one time slot
                                '--step', str(rrd_steps),
@@ -163,15 +163,19 @@ class DataProcessor(object):
 
                 if skip is False:
                     try:
-                        update_stmt = str(timeslot) +\
+                        update_stmt = str(timeslot_sec) +\
                             ':' + str(int(t_product - t_epi)) +\
-                            ':' + str(int(t_product - timeslot))
+                            ':' + str(int(t_product - timeslot_sec))
                         LOGGER.debug(
                             "rrd update %s %s" % (rrd_fname, update_stmt))
                         rrd.update(rrd_fname, update_stmt)
                     except Exception as e:
-                        LOGGER.error(
-                            "Could not update rrd file. ({0})".format(e))
+                        if 'minimum one second step' in str(e):
+                            LOGGER.info(
+                                "rrd file already contains timeslot. ({0})".format(e))
+                        else: 
+                            LOGGER.error(
+                                "Could not update rrd file. ({0})".format(e))
         else:
             LOGGER.info("skipping rrd update (no rrdtool found)")
 
@@ -245,16 +249,23 @@ class DataProcessor(object):
             # load image
             area = get_area_def(msg.data['area']['name'])
 
-            # load image only when necessary
-            if geo_img is None:
-                if not copy_src_file_only:
-                    geo_img = read_image(in_filename, area,
-                                         msg.data['time_eos'])
-
             # and apply each rule
             for rule in rules_to_apply:
+
                 params = self.merge_and_resolve_parameters(msg,
                                                            rule)
+
+                time_name = rule.get('time_name', 'time_eos')
+                timeslot = params.get(time_name)
+                if not isinstance(timeslot, dt.date):
+                    timeslot = dt.datetime.strptime(timeslot,
+                                                    "%Y%m%d%H%M%S")
+
+                # load image only when necessary
+                if geo_img is None:
+                    if not copy_src_file_only:
+                        geo_img = read_image(in_filename, area,
+                                             timeslot)
 
                 box_out_dir = self.out_boxes[rule['out_box_ref']]['output_dir']
                 fname_pattern = rule['dest_filename']
@@ -264,12 +275,17 @@ class DataProcessor(object):
 
                 if not os.path.exists(self.rrd_dir):
                     os.makedirs(self.rrd_dir)
+
+                base_rrd_fname = rule.get('rrd_filename',
+                                          os.path.basename(fname_pattern) +
+                                          ".rrd")
+
                 rrd_fname = self.create_filename(re.sub(r"\{[^\}]*:\%[^\}]*\}",
                                                         "xx",
-                                                        os.path.basename(fname_pattern)) +
-                                                 ".rrd",
+                                                        base_rrd_fname),
                                                  self.rrd_dir,
                                                  params)
+
                 rrd_steps = int(rule.get('rrd_steps', '900'))
 
                 # todo:  layouting etc
@@ -291,6 +307,7 @@ class DataProcessor(object):
                                   fname,
                                   rrd_fname,
                                   rrd_steps,
+                                  timeslot,
                                   params)
 
             LOGGER.info('pr %.1f s', (time.time() - t1a))
@@ -375,7 +392,7 @@ class DataProcessor(object):
 
         if 'time' in params:
             t = params['time']
-            t_eos = t + datetime.timedelta(minutes=15)  # @UndefinedVariable
+            t_eos = t + dt.timedelta(minutes=15)  # @UndefinedVariable
             params['time_eos'] = t_eos
         else:
             print "no time key"
