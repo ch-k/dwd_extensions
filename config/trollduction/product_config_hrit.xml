@@ -351,14 +351,17 @@
             <input_pattern>worldcomposite_ir</input_pattern>
             <out_box_ref>worldcomposite_ninjo</out_box_ref>
             <dest_filename>IR/WCM_IR_{areaname}_{dataset_time:%Y%m%d%H%M}.tif</dest_filename>
-            <rrd_steps>3600</rrd_steps>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
-	       <physic_unit>C</physic_unit>
-	       <ch_min_measurement_unit>40</ch_min_measurement_unit> 
+	           <physic_unit>C</physic_unit>
+	           <ch_min_measurement_unit>40</ch_min_measurement_unit> 
                <ch_max_measurement_unit>-87.5</ch_max_measurement_unit> 
-	       <ninjo_product_name>wcm_ir</ninjo_product_name>
+	           <ninjo_product_name>wcm_ir</ninjo_product_name>
             </format_params>
+            
+            <rrd_steps>3600</rrd_steps>
+            <rrd_filename>WCM_IR_{areaname}_ninjotiff.rrd</rrd_filename>
+            <time_name>gatherer_time</time_name>
         </rule>   
           
         <!-- WORLD COMPOSITE GEOTIFF -->
@@ -366,8 +369,11 @@
             <input_pattern>worldcomposite_ir</input_pattern>
             <out_box_ref>worldcomposite_browser</out_box_ref>
             <dest_filename>IR/WCM_IR_{areaname}_{dataset_time:%Y%m%d%H%M}.tif</dest_filename>
-            <rrd_steps>3600</rrd_steps>
             <format>tif</format>
+            
+            <rrd_steps>3600</rrd_steps>
+            <rrd_filename>WCM_IR_{areaname}_geotiff.rrd</rrd_filename>
+            <time_name>gatherer_time</time_name>
         </rule>     
 	
     
