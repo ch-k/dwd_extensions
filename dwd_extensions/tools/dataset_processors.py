@@ -26,6 +26,7 @@ import numpy as np
 import scipy.ndimage as ndi
 from mpop.projector import get_area_def
 from dwd_extensions.tools.image_io import read_image
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +44,8 @@ def create_world_composite(msg):
             return None
 
         area = get_area_def(msg.data['area']['name'])
-        items.append((url.path, area, msg.data['time_eos']))
+        t_gatherer = datetime.datetime.strptime(msg.data['gatherer_time'], '%Y%m%d%H%M%S')
+        items.append((url.path, area, t_gatherer))
 
     return _create_world_composite(items)
 

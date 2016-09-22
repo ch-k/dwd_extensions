@@ -6,26 +6,26 @@
         </filename>
         <precompute>True</precompute>
         
-         <!--  replace real data values equal to fill_value (default 0) with this value -->
+        <srch_radius>10000</srch_radius> 
        	<repl_fill_val_in_data>1</repl_fill_val_in_data>
        	
     </common>
     
     <product_list>
       
-	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="4">
+	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="4" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
 		    <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
 	    </area>
 	    
-	    <area id="wcm3km" name="wcm3km" process_num="4">
+	    <area id="wcm3km" name="wcm3km" process_num="4" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
 		    <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
 	    </area>
     
-	    <area id="nq0001km" name="nq0001km" process_num="0">
+	    <area id="nq0001km" name="nq0001km" process_num="0" srch_radius="60000">
 	
 	        <product id="dwd_ninjo_HRV" name="HRV" >
 	            <file>METEOSAT_AFRIKA_EUROPA_HRV_nq0001km_{time_eos:%Y%m%d%H%M}.tif</file>
@@ -33,7 +33,7 @@
 	        
 	    </area>
 	       
-	    <area id="nq0003km" name="nq0003km" process_num="0">
+	    <area id="nq0003km" name="nq0003km" process_num="0" srch_radius="60000">
 	    
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
 	            <file>METEOSAT_AFRIKA_EUROPA_VIS006_nq0003km_{time_eos:%Y%m%d%H%M}.tif</file>
@@ -85,6 +85,14 @@
 	    
 	        <product id="dwd_ninjo_HRV" name="HRV">
 	            <file>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_{time_eos:%Y%m%d%H%M}.tif</file>
+	        </product>
+
+		<product id="dwd_RGB_12_12_1_N" name="RGB_12_12_1_N">
+	            <file>METEOSAT_EUROPA_ZENTRAL_RGB-12-12-1-N_nqceur1km_{time_eos:%Y%m%d%H%M}.tif</file>
+	        </product>
+	        
+	        <product id="dwd_RGB_12_12_9i_N" name="RGB_12_12_9i_N">
+	            <file>METEOSAT_EUROPA_ZENTRAL_RGB-12-12-9i-N_nqceur1km_{time_eos:%Y%m%d%H%M}.tif</file>
 	        </product>
 	        
 	    </area>
@@ -324,8 +332,8 @@
             <output_dir id="out_box_dir_worldcomposite_browser"></output_dir>
         </out_box>
         <out_box>
-            <name>rosenow</name>
-            <output_dir id="out_box_dir_rosenow"></output_dir>
+            <name>autoradsatw</name>
+            <output_dir id="out_box_dir_autoradsatw"></output_dir>
         </out_box>
 
         <dataset_processor>
@@ -346,7 +354,10 @@
             <rrd_steps>3600</rrd_steps>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
-    	       <ninjo_product_name>wcm_ir</ninjo_product_name>
+	       <physic_unit>C</physic_unit>
+	       <ch_min_measurement_unit>40</ch_min_measurement_unit> 
+               <ch_max_measurement_unit>-87.5</ch_max_measurement_unit> 
+	       <ninjo_product_name>wcm_ir</ninjo_product_name>
             </format_params>
         </rule>   
           
@@ -503,6 +514,20 @@
         </rule>
         
         <rule>
+            <input_pattern>METEOSAT_EUROPA_ZENTRAL_RGB-12-12-1-N_nqceur1km_.*</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <format_params>
+                <ninjo_product_name>msg_rgb-12-12-1-n</ninjo_product_name>
+                <sat_id>6400014</sat_id>
+		<chan_id>19800015</chan_id>
+                <data_cat>GORN</data_cat>
+            </format_params>
+        </rule>
+
+	<rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
@@ -517,6 +542,20 @@
         </rule>
 
         <rule>
+            <input_pattern>METEOSAT_EUROPA_ZENTRAL_RGB-12-12-9i-N_nqceur1km_.*</input_pattern>
+            <rule_group>ninjo</rule_group>
+            <out_box_ref>ninjo</out_box_ref>
+            <dest_filename>METEOSAT_EUROPA_ZENTRAL_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <format>mpop.imageo.formats.ninjotiff</format>
+            <format_params>
+                <ninjo_product_name>msg_rgb-12-12-9i-n</ninjo_product_name>
+                <sat_id>6400014</sat_id>
+		<chan_id>19900015</chan_id>
+                <data_cat>GORN</data_cat>
+            </format_params>
+        </rule>
+
+	<rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_((VIS006)|(VIS008))_nqeuro3km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
@@ -683,18 +722,18 @@
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
-	<!-- ROSENOW -->
+	<!-- AUTORADSATW -->
         <rule>
             <input_pattern>METEOSAT_EUROPA_ZENTRAL_HRV_nqceur1km_.*</input_pattern>
             <dest_filename>SatWetter_METEOSAT_EUROPA_ZENTRAL_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
-            <out_box_ref>rosenow</out_box_ref>
+            <out_box_ref>autoradsatw</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
         <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_.*</input_pattern>
             <dest_filename>SatWetter_METEOSAT_EUROPA_GESAMT_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
-            <out_box_ref>rosenow</out_box_ref>
+            <out_box_ref>autoradsatw</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
