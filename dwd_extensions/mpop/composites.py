@@ -51,7 +51,7 @@ def _dwd_create_single_channel_image(self, chn):
     # apply calibrations and corrections on channels
     if not self._dwd_channel_preparation(chn):
         return None
-            
+
     if self._is_solar_channel(chn):
         return geo_image.GeoImage(self[chn].data,
                                   self.area,

@@ -4,8 +4,13 @@
         <filename>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
         </filename>
         <precompute>True</precompute>
-	<srch_radius>10000</srch_radius>
-        <repl_fill_val_in_data>1</repl_fill_val_in_data>
+        <srch_radius>10000</srch_radius>
+        <format_params>
+            <!-- replace real data values equal to fill_value (default 0) with 
+            this value -->
+            <fill_value_subst>1</fill_value_subst>
+            <nbits>8</nbits>
+        </format_params>
     </common>
     <product_list>
 

@@ -241,7 +241,7 @@ class ViewZenithAngleCacheManager(object):
         sublons = set([x for x in
                        [ch.info.get('sublon', None) for ch in channels]
                        if x is not None])
-        if not sublons:
+        if sublons is None or len(sublons) == 0:
             LOGGER.error(
                 'no sublon values found in loaded channels')
         else:
