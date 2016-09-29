@@ -328,7 +328,7 @@ class DataProcessor(object):
                                "incomplete/missing/corrupted data." %
                                msg.data['product_filename'])
         else:
-            LOGGER.warning(
+            LOGGER.info(
                 "no matching rule found for %s" % in_filename)
 
     def get_save_arguments(self, rule):

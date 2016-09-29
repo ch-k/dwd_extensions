@@ -44,7 +44,13 @@ def create_world_composite(msg):
             return None
 
         area = get_area_def(msg.data['area']['name'])
-        t_gatherer = datetime.datetime.strptime(msg.data['gatherer_time'], '%Y%m%d%H%M%S')
+        t_gatherer = msg.data['gatherer_time']
+        if not isinstance(t_gatherer, datetime.datetime):
+            try:
+                t_gatherer = datetime.datetime.strptime(
+                    t_gatherer, '%Y%m%d%H%M%S')
+            except:
+                t_gatherer = None
         items.append((url.path, area, t_gatherer))
 
     return _create_world_composite(items)
@@ -54,7 +60,7 @@ def _create_world_composite(items):
     erosion_size = 20
 #     smooth_sigma = 4
     smooth_width = 20
-    
+
     img = None
     for (path, area, timeslot) in items:
         next_img = read_image(path, area, timeslot)
@@ -64,7 +70,7 @@ def _create_world_composite(items):
             scaled_erosion_size = erosion_size * (float(img.width) / 1000.0)
 #             scaled_smooth_sigma = smooth_sigma * (float(img.width) / 1000.0)
             scaled_smooth_width = smooth_width * (float(img.width) / 1000.0)
-            
+
             img_mask = reduce(np.ma.mask_or,
                               [chn.mask for chn in img.channels])
             next_img_mask = reduce(np.ma.mask_or,

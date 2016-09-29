@@ -345,10 +345,6 @@
         <dataset_processor>
 	        <msg_subject_pattern>.*WORLDCOMP/IR</msg_subject_pattern>
 	        <processing_function>dwd_extensions.tools.dataset_processors|create_world_composite</processing_function>
-            <var_parse>
-                <msg_key>gatherer_time</msg_key>
-                <parse_pattern>{dataset_time:%Y%m%d%H%M%S}</parse_pattern>
-            </var_parse>
 	        <output_name>worldcomposite_ir</output_name>
         </dataset_processor>
 	
@@ -356,7 +352,7 @@
         <rule>
             <input_pattern>worldcomposite_ir</input_pattern>
             <out_box_ref>worldcomposite_ninjo</out_box_ref>
-            <dest_filename>IR/WCM_IR_{areaname}_{dataset_time:%Y%m%d%H%M}.tif</dest_filename>
+            <dest_filename>IR/WCM_IR_{areaname}_{gatherer_time:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
 	           <physic_unit>C</physic_unit>
@@ -374,7 +370,7 @@
         <rule>
             <input_pattern>worldcomposite_ir</input_pattern>
             <out_box_ref>worldcomposite_browser</out_box_ref>
-            <dest_filename>IR/WCM_IR_{areaname}_{dataset_time:%Y%m%d%H%M}.tif</dest_filename>
+            <dest_filename>IR/WCM_IR_{areaname}_{gatherer_time:%Y%m%d%H%M}.tif</dest_filename>
             <format>tif</format>
             
             <rrd_steps>3600</rrd_steps>
