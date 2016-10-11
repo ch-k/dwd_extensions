@@ -345,6 +345,10 @@
         <dataset_processor>
 	        <msg_subject_pattern>.*WORLDCOMP/IR</msg_subject_pattern>
 	        <processing_function>dwd_extensions.tools.dataset_processors|create_world_composite</processing_function>
+	        <processing_function_params>
+                <!-- meteosat 10 on top of meteosat 7, met7 on top of himawari8 etc.-->
+                <order>*meteosat10*|*meteosat7*|*himawari*|*goes13*|*goes15*</order>
+            </processing_function_params>
 	        <output_name>worldcomposite_ir</output_name>
         </dataset_processor>
 	
