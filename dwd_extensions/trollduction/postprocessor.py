@@ -197,11 +197,13 @@ class DataProcessor(object):
                     for vp in vps:
                         new_vals = parse(vp['parse_pattern'],msg.data[vp['msg_key']])
                         msg.data.update(new_vals)
-                       
+                    
+                    proc_func_params = ds_proc.get('processing_function_params', None);     
+                    
                     module_name, function_name = \
                         ds_proc['processing_function'].split('|')
                     func = get_custom_function(module_name, function_name)
-                    geo_img = func(msg)
+                    geo_img = func(msg, proc_func_params)
                     in_filename_base = ds_proc['output_name']
                     in_filename = None
                     break

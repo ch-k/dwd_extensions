@@ -21,6 +21,8 @@
 '''This module defines functions to create images out of dataset messages
 '''
 from urlparse import urlparse
+from fnmatch import fnmatch
+from functools import partial
 import logging
 import numpy as np
 import scipy.ndimage as ndi
@@ -31,7 +33,7 @@ import datetime
 LOGGER = logging.getLogger(__name__)
 
 
-def create_world_composite(msg):
+def create_world_composite(msg, proc_func_params):
     """
     Creates a world composite images out of an dataset message
     """
@@ -39,7 +41,7 @@ def create_world_composite(msg):
     for elem in msg.data['dataset']:
         url = urlparse(elem['uri'])
         if url.netloc != '':
-            LOGGER.error('urifrom scipy.misc import toimag not supported: %s',
+            LOGGER.error('uri not supported: %s',
                          format(elem['uri']))
             return None
 
@@ -53,12 +55,25 @@ def create_world_composite(msg):
                 t_gatherer = None
         items.append((url.path, area, t_gatherer))
 
+    # order images
+    if proc_func_params and proc_func_params.has_key('order'):
+        order_list = proc_func_params['order'].split('|')
+        sort_key = partial(_match_order_index, order_list)
+        items = sorted(items, key=sort_key, reverse=True)
+        
     return _create_world_composite(items)
 
+def _match_order_index(order_list, item):
+    for idx, pattern in enumerate(order_list):
+        if fnmatch(item[0], pattern):
+            print(str(idx) + ' << ' + item[0]) 
+            return idx
+    print(str(len(order_list)) + ' << ' + item[0])
+    return len(order_list)
 
 def _create_world_composite(items):
     erosion_size = 20
-#     smooth_sigma = 4
+    # smooth_sigma = 4
     smooth_width = 20
 
     img = None
@@ -68,7 +83,7 @@ def _create_world_composite(items):
             img = next_img
         else:
             scaled_erosion_size = erosion_size * (float(img.width) / 1000.0)
-#             scaled_smooth_sigma = smooth_sigma * (float(img.width) / 1000.0)
+            # scaled_smooth_sigma = smooth_sigma * (float(img.width) / 1000.0)
             scaled_smooth_width = smooth_width * (float(img.width) / 1000.0)
 
             img_mask = reduce(np.ma.mask_or,
@@ -79,9 +94,9 @@ def _create_world_composite(items):
             alpha = np.ones(next_img_mask.shape, dtype='float')
             alpha[next_img_mask] = 0.0
 
-#             smooth_alpha = ndi.gaussian_filter(
-#                 ndi.grey_erosion(alpha, size=(scaled_erosion_size, scaled_erosion_size)),
-#                 scaled_smooth_sigma)
+            # smooth_alpha = ndi.gaussian_filter(
+            #     ndi.grey_erosion(alpha, size=(scaled_erosion_size, scaled_erosion_size)),
+            #        scaled_smooth_sigma)
             smooth_alpha = ndi.uniform_filter(
                 ndi.grey_erosion(alpha, size=(scaled_erosion_size, scaled_erosion_size)),
                 scaled_smooth_width)
@@ -93,8 +108,7 @@ def _create_world_composite(items):
                 chmask = np.logical_and(img_mask, next_img_mask)
                 img.channels[i] = \
                     np.ma.masked_where(chmask, chdata)
-#             show(img.channels[i])
-#     img.save("/vagrant/wc_{0}_{1}_uniform.png".format(scaled_erosion_size, scaled_smooth_width))
+
     return img
 
 # def show(ch):
