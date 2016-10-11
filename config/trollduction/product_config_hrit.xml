@@ -151,7 +151,7 @@
 	        
 	    </area>
 	    
-	    <area id="nqeuro1km" name="nqeuro1km" process_num="2">
+	    <area id="nqeuro1km" name="nqeuro1km" process_num="2" srch_radius="60000">
 
 	        <product id="dwd_ninjo_HRV" name="HRV">
 	            <file>METEOSAT_EUROPA_GESAMT_HRV_nqeuro1km_{time_eos:%Y%m%d%H%M}.tif</file>
@@ -167,7 +167,7 @@
 	        
 	    </area>
 	    
-	    <area id="nqeuro3km" name="nqeuro3km" process_num="1">
+	    <area id="nqeuro3km" name="nqeuro3km" process_num="1" srch_radius="60000">
 
 	        <product id="dwd_ninjo_VIS006" name="VIS006">
 	            <file>METEOSAT_EUROPA_GESAMT_VIS006_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
