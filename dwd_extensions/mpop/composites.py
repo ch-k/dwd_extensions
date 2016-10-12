@@ -636,7 +636,7 @@ def dwd_Fernsehbild(self):
 
     # extract the clouds for hrvis channel
     hrvc_clouds = hrvc_chn.data.copy()
-    if hrvc_clouds.mask == False:
+    if hrvc_clouds.mask is False:
         hrvc_clouds.mask = np.zeros(ct_data.shape, dtype=bool)
     hrvc_clouds.mask[ct_mask] = True
 
@@ -658,7 +658,7 @@ def dwd_Fernsehbild(self):
 
     # extract the clouds for infrared channel
     ir_clouds = self[10.8].data.copy()
-    if ir_clouds.mask == False:
+    if ir_clouds.mask is False:
         ir_clouds.mask = np.zeros(ct_data.shape, dtype=bool)
     ir_clouds.mask[ct_mask] = True
 

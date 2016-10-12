@@ -19,13 +19,13 @@
     
     <product_list>
       
-	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="4" srch_radius="60000">
+	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="200" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
 		    <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
 	    </area>
 	    
-	    <area id="wcm3km" name="wcm3km" process_num="4" srch_radius="60000">
+	    <area id="wcm3km" name="wcm3km" process_num="200" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
 		    <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
@@ -227,7 +227,7 @@
 	        
 	    </area>
 		    
-		<area id="nqeuro3km" name="nqeuro3km" process_num="3">
+		<area id="nqeuro3km" name="nqeuro3km" process_num="100">
 
 	        <product id="dwd_Fernsehbild" name="Fernsehbild">
 	            <file>Fernsehbild_nqeuro3km_{time_eos:%Y%m%d%H%M}.tif</file>
@@ -281,7 +281,7 @@
 	        -->
 	    </area>
 	    
-	    <area id="pcwarnapp1500m" name="pcwarnapp1500m" process_num="3">
+	    <area id="pcwarnapp1500m" name="pcwarnapp1500m" process_num="100">
 	
 	        <product id="dwd_FernsehbildRGBA" name="WarnappbildRGBA">
 	            <composite_params>
@@ -296,7 +296,7 @@
 	        
 	    </area>
     
-    	<area id="mercwarnapp1500m" name="mercwarnapp1500m" process_num="3">
+    	<area id="mercwarnapp1500m" name="mercwarnapp1500m" process_num="100">
 	
 	        <product id="dwd_FernsehbildRGBA" name="WarnappbildRGBA">
 	            <composite_params>

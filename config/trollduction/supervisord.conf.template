@@ -80,12 +80,33 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 [program:l2processor-msg-hrit]
 environment = PPP_CONFIG_DIR="%CONFIGDIR%"
 command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_msg_hrit -N %(process_num)s    
-process_name=trollduction-l2processor-%(process_num)s
+process_name=trollduction-l2processor-msg-hrit-%(process_num)s
 priority=3                  
 startsecs=3
 stdout_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stdout.log
 stderr_logfile=%LOGDIR%/%(program_name)s-%(process_num)02d-stderr.log
-numprocs=5
+numprocs=3
+
+; for products depending on nwcsaf cloudtype
+[program:l2processor-msg-hrit-with-ct]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_msg_hrit_with_cloudtype -N 100    
+process_name=trollduction-l2processor-msg-hrit-with-ct
+priority=3                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
+; for world composite
+[program:l2processor-msg-hrit-wcm]
+environment = PPP_CONFIG_DIR="%CONFIGDIR%"
+command=%PYTHONBIN% %L2PROCESSORPATH% -c %MASTERCONFIGPATH% -C l2_msg_hrit -N 200    
+process_name=trollduction-l2processor-msg-hrit-wcm
+priority=3                  
+startsecs=3
+stdout_logfile=%LOGDIR%/%(program_name)s-stdout.log
+stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
+
 
 
 
@@ -259,7 +280,7 @@ stderr_logfile=%LOGDIR%/%(program_name)s-stderr.log
 
 
 [group:trollduction]
-programs=nameserver,trollstalker-msg-hrit,l2processor-msg-hrit,postprocessor,trollstalker-goes13,seggather-goes13,l2processor-goes13,trollstalker-goes15,seggather-goes15,l2processor-goes15,trollstalker-himawari8,l2processor-himawari8,trollstalker-mtp,seggather-mtp,l2processor-mtp
+programs=nameserver,trollstalker-msg-hrit,l2processor-msg-hrit,l2processor-msg-hrit-with-ct,l2processor-msg-hrit-wcm,postprocessor,trollstalker-goes13,seggather-goes13,l2processor-goes13,trollstalker-goes15,seggather-goes15,l2processor-goes15,trollstalker-himawari8,l2processor-himawari8,trollstalker-mtp,seggather-mtp,l2processor-mtp
 ; each refers to 'x' in [program:x] definitions
 ;priority=999                  ; the relative start priority (default 999)
 
