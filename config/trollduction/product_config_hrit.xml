@@ -714,6 +714,7 @@
                 <sat_id>6700014</sat_id>
                 <chan_id>1200015</chan_id>
             </format_params>
+            <rrd_steps>300</rrd_steps>
         </rule>
         
         <rule>
@@ -730,6 +731,7 @@
                 <sat_id>6700014</sat_id>
                 <chan_id>900015</chan_id>
             </format_params>
+            <rrd_steps>300</rrd_steps>
         </rule>
         
         <rule>
@@ -744,6 +746,7 @@
                 <chan_id>9800015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
+            <rrd_steps>300</rrd_steps>
         </rule>
         
         <rule>
@@ -761,6 +764,7 @@
                 <sat_id>6700014</sat_id>
                 <chan_id>100015</chan_id>
             </format_params>
+            <rrd_steps>300</rrd_steps>
         </rule>
         
         <rule>
@@ -778,6 +782,7 @@
                 <sat_id>6700014</sat_id>
                 <chan_id>200015</chan_id>
             </format_params>
+            <rrd_steps>300</rrd_steps>
         </rule>
 
 	<!--
