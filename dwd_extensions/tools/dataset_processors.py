@@ -56,29 +56,40 @@ def create_world_composite(msg, proc_func_params):
         items.append((url.path, area, t_gatherer))
 
     # order images
-    if proc_func_params and proc_func_params.has_key('order'):
-        order_list = proc_func_params['order'].split('|')
-        sort_key = partial(_match_order_index, order_list)
-        items = sorted(items, key=sort_key, reverse=True)
-        
-    return _create_world_composite(items)
+    if proc_func_params: 
+        if proc_func_params.has_key('order'):
+            order_list = proc_func_params['order'].split('|')
+            sort_key = partial(_match_order_index, order_list)
+            items = sorted(items, key=sort_key, reverse=True)
+#         for key in proc_func_params.keys:
+#             if key == 'lon_limit':
+#                 vals = 
+            
+
+    lon_limits = None
+
+    return _create_world_composite(items, lon_limits)
+
 
 def _match_order_index(order_list, item):
     for idx, pattern in enumerate(order_list):
         if fnmatch(item[0], pattern):
-            print(str(idx) + ' << ' + item[0]) 
+            print(str(idx) + ' << ' + item[0])
             return idx
     print(str(len(order_list)) + ' << ' + item[0])
     return len(order_list)
 
-def _create_world_composite(items):
+
+def _create_world_composite(items, lon_limits):
     erosion_size = 20
     # smooth_sigma = 4
     smooth_width = 20
 
     img = None
     for (path, area, timeslot) in items:
+
         next_img = read_image(path, area, timeslot)
+
         if img is None:
             img = next_img
         else:
@@ -90,6 +101,16 @@ def _create_world_composite(items):
                               [chn.mask for chn in img.channels])
             next_img_mask = reduce(np.ma.mask_or,
                                    [chn.mask for chn in next_img.channels])
+
+             # Mask overlapping areas away
+            if lon_limits:
+                for sat in lon_limits:
+                    if sat in path:
+                        adef = get_area_def(area)
+                        mask_limits = calc_pixel_mask_limits(adef, lon_limits[sat])
+                        for lim in mask_limits:
+                            next_img_mask[:, lim[0]:lim[1]] = 1
+                        break
 
             alpha = np.ones(next_img_mask.shape, dtype='float')
             alpha[next_img_mask] = 0.0
@@ -110,6 +131,21 @@ def _create_world_composite(items):
                     np.ma.masked_where(chmask, chdata)
 
     return img
+
+def calc_pixel_mask_limits(adef, lon_limits):
+    """Calculate pixel intervals from longitude ranges."""
+    # We'll assume global grid from -180 to 180 longitudes
+    scale = 360./adef.shape[1] # degrees per pixel
+    
+    left_limit = int((lon_limits[0] + 180)/scale)
+    right_limit = int((lon_limits[1] + 180)/scale)
+
+    # Satellite data spans 180th meridian
+    if right_limit < left_limit:
+        return [[right_limit, left_limit]]
+    else:
+        return [[0, left_limit], [right_limit, adef.shape[1]]]
+
 
 # def show(ch):
 #     gimg = geo_image.Image(ch)
