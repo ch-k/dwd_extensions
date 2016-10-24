@@ -318,7 +318,7 @@ class ViewZenithAngleCacheManager(object):
             self.sublon_processor.multiproc_mgr.shutdown()
             self.sublon_processor = None
 
-    def _set_tle_file(self, tle_path):
+    def _set_tle_file(self, tle_path, config_item=None):
         """Sets the newest TLE file.
         """
         if os.path.isdir(tle_path):
