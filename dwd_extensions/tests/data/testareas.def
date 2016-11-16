@@ -1,0 +1,8 @@
+REGION: testwcm{
+        NAME:   testwcm
+        PCS_ID: PCARREE_0.0_3000.5
+        PCS_DEF:        proj=eqc,lon_0=0.0,ellps=WGS84
+        XSIZE:  1334
+        YSIZE:  667
+        AREA_EXTENT:    (-20022246.440601483, -10010372.926932797, 20025250.953657996, 10010372.926932797)
+};

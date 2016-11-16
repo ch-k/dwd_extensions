@@ -21,13 +21,13 @@
       
 	    <area id="wwwWcm40km" name="wwwWcm40km" process_num="200" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
-		    <file>{service_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+		    <file>{service_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
 	    </area>
 	    
 	    <area id="wcm3km" name="wcm3km" process_num="200" srch_radius="60000">
 		<product id="dwd_ninjo_IR_108" name="IR_108">
-		    <file>{service_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+		    <file>{service_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif</file>
 		</product>
 	    </area>
     
@@ -373,7 +373,8 @@
 	        <processing_function>dwd_extensions.tools.dataset_processors|create_world_composite</processing_function>
 	        <processing_function_params>
                 <!-- meteosat 10 on top of meteosat 7, met7 on top of himawari8 etc.-->
-                <order>*meteosat10*|*meteosat7*|*himawari*|*goes13*|*goes15*</order>
+                <order>*ZDS*|*IODC*|*himawari*|*goes13*|*goes15*</order>
+                <lon_limits>ZDS,-37.5,20.75|IODC,20.75,91.1|himawari8,91.1,-177.15|goes15,-177.15,-105.|goes13,-105.,-37.5</lon_limits>
             </processing_function_params>
 	        <output_name>worldcomposite_ir</output_name>
         </dataset_processor>
@@ -423,7 +424,7 @@
                 <ch_min_measurement_unit>0</ch_min_measurement_unit> 
                 <ch_max_measurement_unit>125</ch_max_measurement_unit>
                 <ninjo_product_name>{productname}</ninjo_product_name>
-		<sat_id>6200014</sat_id>
+                <sat_id>6200014</sat_id>
             </format_params>
         </rule>
 
@@ -439,7 +440,7 @@
                 <ch_min_measurement_unit>0</ch_min_measurement_unit> 
                 <ch_max_measurement_unit>125</ch_max_measurement_unit>
                 <ninjo_product_name>IR_016</ninjo_product_name>
-		<sat_id>6200014</sat_id>
+                <sat_id>6200014</sat_id>
             </format_params>
         </rule>
 
@@ -454,7 +455,7 @@
                 <ch_min_measurement_unit>40</ch_min_measurement_unit> 
                 <ch_max_measurement_unit>-87.5</ch_max_measurement_unit> 
                 <ninjo_product_name>{productname}</ninjo_product_name>
-		<sat_id>6200014</sat_id>
+                <sat_id>6200014</sat_id>
             </format_params>
         </rule>
 
@@ -546,7 +547,7 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-1-n</ninjo_product_name>
                 <sat_id>6300014</sat_id>
-		<chan_id>9800015</chan_id>
+                <chan_id>9800015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
@@ -560,12 +561,12 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-1-n</ninjo_product_name>
                 <sat_id>6400014</sat_id>
-		<chan_id>19800015</chan_id>
+                <chan_id>19800015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
 
-	<rule>
+        <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
@@ -574,7 +575,7 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-9i-n</ninjo_product_name>
                 <sat_id>6300014</sat_id>
-		<chan_id>9900015</chan_id>
+                <chan_id>9900015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
@@ -588,7 +589,7 @@
             <format_params>
                 <ninjo_product_name>msg_rgb-12-12-9i-n</ninjo_product_name>
                 <sat_id>6400014</sat_id>
-		<chan_id>19900015</chan_id>
+                <chan_id>19900015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
@@ -649,7 +650,7 @@
             <format_params>
                 <ninjo_product_name>msg_airmass</ninjo_product_name>
                 <sat_id>6300014</sat_id>
-		          <chan_id>6500015</chan_id>
+                <chan_id>6500015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
@@ -663,7 +664,7 @@
             <format_params>
                 <ninjo_product_name>msg_schwere_konvektion_tag</ninjo_product_name>
                 <sat_id>6300014</sat_id>
-		<chan_id>6700015</chan_id>
+                <chan_id>6700015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
@@ -677,7 +678,7 @@
             <format_params>
                 <ninjo_product_name>msg_dust</ninjo_product_name>
                 <sat_id>6300014</sat_id>
-		<chan_id>6600015</chan_id>
+                <chan_id>6600015</chan_id>
                 <data_cat>GORN</data_cat>
             </format_params>
         </rule>
