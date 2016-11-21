@@ -15,32 +15,75 @@
 
     <product_list>
 
-        <area id="wwwWcm40km" name="wwwWcm40km" srch_radius="60000">
+        <area id="wwwWcm40km" name="wwwWcm40km" process_num="200" srch_radius="60000">
             <product id="dwd_ninjo_IR_108" name="IR_108">
                 <file>{service_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif
                 </file>
             </product>
+            <product id="dwd_IR_VIS" name="IRVIS">
+                <file>{service_name}_{productname}_irvis_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+            </product>
         </area>
 
-        <area id="wcm3km" name="wcm3km" srch_radius="60000">
+        <area id="wcm3km" name="wcm3km" process_num="200" srch_radius="60000">
             <product id="dwd_ninjo_IR_108" name="IR_108">
-                <file>{service_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif
-                </file>
+                <file>{service_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+            </product>
+            <product id="dwd_IR_VIS" name="IRVIS">
+                <file>{service_name}_{productname}_irvis_{areaname}_{time:%Y%m%d%H%M}.tif</file>
             </product>
         </area>
 
 
-        <area id="MSG8F" name="MSG8F" srch_radius="60000">
+        <area id="msg8test" name="msg8test" process_num="0" srch_radius="60000">
+             <product id="dwd_ninjo_VIS006" name="VIS006">
+                <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_VIS008" name="VIS008">
+                <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_016" name="IR_016">
+                <file>{service_name}_NIR016_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_039" name="IR_039">
+                <file>{service_name}_IR039_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_WV_062" name="WV_062">
+                <file>{service_name}_WV062_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_WV_073" name="WV_073">
+                <file>{service_name}_WV073_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_087" name="IR_087">
+                <file>{service_name}_IR087_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_097" name="IR_097">
+                <file>{service_name}_IR097_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
             <product id="dwd_ninjo_IR_108" name="IR_108">
-                <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
-                </file>
+                <file>{service_name}_IR108_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_120" name="IR_120">
+                <file>{service_name}_IR120_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
+            </product>
+            
+            <product id="dwd_ninjo_IR_134" name="IR_134">
+                <file>{service_name}_IR134_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
             </product>
 
             <product id="dwd_ninjo_HRV" name="HRV">
-                <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
-                </file>
+                <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
             </product>
-
+            <!-- 
             <product id="dwd_RGB_12_12_1_N" name="RGB_12_12_1_N">
                 <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
                 </file>
@@ -50,7 +93,7 @@
                 <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
                 </file>
             </product>
-
+            -->
         </area>
 
     </product_list>

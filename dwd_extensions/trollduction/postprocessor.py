@@ -189,6 +189,7 @@ class DataProcessor(object):
         self.layout_handler = LayoutHandler(product_config, config_dir)
 
         if msg.type in ['dataset']:
+            geo_img = None
             for ds_proc in self.dataset_processors:
                 if re.match(ds_proc['msg_subject_pattern'], msg.subject):
                     vps = ds_proc.get('var_parse', [])

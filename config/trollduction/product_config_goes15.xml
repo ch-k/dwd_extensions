@@ -20,12 +20,18 @@
                 <file>{platform_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif
                 </file>
             </product>
+            <product id="dwd_GOES_IR_VIS" name="IRVIS">
+                <file>{service_name}_{productname}_irvis_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+            </product>
         </area>
 
         <area id="wcm3km" name="wcm3km" srch_radius="60000">
             <product id="dwd_ninjo_GOES_10_7" name="IR_107">
                 <file>{platform_name}_{productname}_ir_{areaname}_{time:%Y%m%d%H%M}.tif
                 </file>
+            </product>
+            <product id="dwd_GOES_IR_VIS" name="IRVIS">
+                <file>{service_name}_{productname}_irvis_{areaname}_{time:%Y%m%d%H%M}.tif</file>
             </product>
         </area>
 

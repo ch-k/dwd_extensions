@@ -7,7 +7,7 @@ import numpy as np
 import logging
 
 import mpop.imageo.geo_image as geo_image  # @UnresolvedImport
-from mpop.channel import Channel  # @UnresolvedImport
+from mpop.channel import Channel, NotLoadedError  # @UnresolvedImport
 
 try:
     from pyorbital.astronomy import sun_zenith_angle as sza
@@ -75,7 +75,8 @@ def _dwd_apply_sun_zenith_angle_correction(self, chn):
             self[chn].info.get("sun_zen_corrected", None) is None:
         if self.area.lons is None or self.area.lats is None:
             self.area.lons, self.area.lats = self.area.get_lonlats()
-        sun_zen_chn = self[chn].sunzen_corr(get_first(self.time_slot), limit=85.)
+        sun_zen_chn = self[chn].sunzen_corr(get_first(self.time_slot),
+                                            limit=85.)
         self[chn].data = sun_zen_chn.data.copy()
         del(sun_zen_chn)
 
@@ -99,7 +100,8 @@ def _dwd_kelvin_to_celsius(self, chn):
     """Apply Kelvin to Celsius conversion on infrared channels.
     """
     if not self._is_solar_channel(chn) and \
-            (self[chn].info['units'] in ['K', 'degree Kelvin', 'KELVIN'] or self[chn].unit == 'K'):
+            (self[chn].info['units'] in ['K', 'degree Kelvin', 'KELVIN'] or
+             self[chn].unit == 'K'):
         self[chn].data -= CONVERSION
         self[chn].info['units'] = self[chn].unit = 'C'
 
@@ -123,7 +125,8 @@ def _dwd_channel_preparation(self, *chn):
         self._dwd_apply_sun_zenith_angle_correction(c)
         self._dwd_apply_view_zenith_angle_correction(c)
         self._dwd_kelvin_to_celsius(c)
-        if self[c].info['units'] != 'C' and self[c].info['units'] != '%':
+        if self[c].info['units'] != 'C' and \
+                self[c].info['units'] not in ['%', 'ALBEDO(%)', 'percent']:
             result = False
             LOGGER.error(
                 "Calibration for channel " + str(c) +
@@ -184,15 +187,15 @@ def _dwd_get_hrvc_channel(self):
     return hrvc_chn
 
 
-def _dwd_get_alpha_channel(self):
+def _dwd_get_day_night_alpha_channel(self):
     """Returns the alpha values depending on the sun zenith angles.
     Lower angles result in lower alpha values
     so this data has to be inverted for the day image.
     """
     try:
-        self.check_channels("ALPHA")
-        if self["ALPHA"].data.shape != self.area.shape:
-            self._data_holder.channels.remove(self["ALPHA"])
+        self.check_channels("DAY_NIGHT_ALPHA")
+        if self["DAY_NIGHT_ALPHA"].data.shape != self.area.shape:
+            self._data_holder.channels.remove(self["DAY_NIGHT_ALPHA"])
             raise Exception
     except:
         sun_zen_chn = self._dwd_get_sun_zenith_angles_channel()
@@ -204,10 +207,10 @@ def _dwd_get_alpha_channel(self):
                        (SUN_ZEN_NIGHT_LIMIT - SUN_ZEN_DAY_LIMIT)) *
                        (254 - 1) + 1)
         alpha[np.where(data > SUN_ZEN_NIGHT_LIMIT)] += 255
-        alpha_chn = Channel(name="ALPHA",
+        alpha_chn = Channel(name="DAY_NIGHT_ALPHA",
                             data=alpha)
         self._data_holder.channels.append(alpha_chn)
-    return self["ALPHA"]
+    return self["DAY_NIGHT_ALPHA"]
 
 
 def _dwd_get_image_type(self):
@@ -394,7 +397,7 @@ def dwd_RGB_12_12_1_N(self):
         return img
 
     if img_type == IMAGETYPES.DAY_NIGHT:
-        alpha_data = self._dwd_get_alpha_channel().data
+        alpha_data = self._dwd_get_day_night_alpha_channel().data
         # create day image
         day_img = self._dwd_create_RGB_image(
             (hrvc_chn.data, hrvc_chn.data, self[0.635].data, alpha_data),
@@ -457,7 +460,7 @@ def dwd_RGB_12_12_9i_N(self):
     img_type = self._dwd_get_image_type()
     if img_type is None:
         return None
-    
+
     if img_type == IMAGETYPES.DAY_ONLY:
         img = self._dwd_create_RGB_image(
             (hrvc_chn.data, hrvc_chn.data, self[10.8].data),
@@ -477,7 +480,7 @@ def dwd_RGB_12_12_9i_N(self):
         return img
 
     if img_type == IMAGETYPES.DAY_NIGHT:
-        alpha_data = self._dwd_get_alpha_channel().data
+        alpha_data = self._dwd_get_day_night_alpha_channel().data
         # create day image
         day_img = self._dwd_create_RGB_image(
             (hrvc_chn.data, hrvc_chn.data, self[10.8].data, alpha_data),
@@ -576,6 +579,86 @@ def dwd_ninjo_HRV(self):
     return self._dwd_create_single_channel_image('HRV')
 
 dwd_ninjo_HRV.prerequisites = set(['HRV'])
+
+
+def _dwd_create_day_night_image(self, day_chn_name, night_chn_name):
+    """Make a DWD specific IR / VIS product depending sun zenith angle.
+    i.e.: use IR10.8 for the night and VIS006 for the day.
+    """
+    day_chn_available = True
+    try:
+        self.check_channels(day_chn_name)
+    except (NotLoadedError, KeyError):
+        day_chn_available = False
+
+    self.check_channels(night_chn_name)
+
+    # print "day   channel: " + str(self[day_chn_name].info)
+    # print "night channel: " + str(self[night_chn_name].info)
+
+    if not self._dwd_channel_preparation(night_chn_name):
+        return None
+
+    if not day_chn_available:
+        img = self._dwd_create_single_channel_image(night_chn_name)
+        return img
+
+    if not self._dwd_channel_preparation(day_chn_name):
+        return None
+
+    img_type = self._dwd_get_image_type()
+    if img_type is None:
+        return None
+
+    if img_type == IMAGETYPES.DAY_ONLY:
+        img = self._dwd_create_single_channel_image(day_chn_name)
+        return img
+
+    if img_type == IMAGETYPES.NIGHT_ONLY:
+        img = self._dwd_create_single_channel_image(night_chn_name)
+        return img
+
+    if img_type == IMAGETYPES.DAY_NIGHT:
+        alpha_data = \
+            self._dwd_get_day_night_alpha_channel().data.astype(np.float64) \
+            / 255.0
+        # create day image
+        day_img = self._dwd_create_single_channel_image(day_chn_name)
+        # day_img.channels[0].mask[alpha_data==1.0] = 0.0
+        day_img.putalpha(alpha_data)
+        day_img.enhance(inverse=(False, True))
+
+        # create night image
+        night_img = self._dwd_create_single_channel_image(night_chn_name)
+        night_img.putalpha(alpha_data)
+
+        # blending does not work correctly when pixels are masked in only
+        # one channel, i.e himawari 8 VIS channel is masked in some dark
+        # regions
+        # workround: remove such masked out pixels and set corresponding pixel
+        # in alpha channel to zero
+        m1 = day_img.channels[0].mask
+        m2 = night_img.channels[0].mask
+        m1_kill = np.logical_and(m1, np.logical_not(m2))
+        # do not mask but set corresponding pixels in alpha channel to zero
+        day_img.channels[0].mask[m1_kill] = False
+        day_img.channels[1].data[m1_kill] = 0.0
+
+        blend(night_img, day_img)
+        img = night_img
+        img.convert("L")
+        return img
+
+    return None
+
+
+def dwd_IR_VIS(self):
+    """Make a DWD specific IR / VIS product depending sun zenith angle.
+    Use IR10.8 for the night and VIS006 for the day.
+    """
+    return self._dwd_create_day_night_image('VIS006', 'IR_108')
+
+dwd_IR_VIS.prerequisites = set(['VIS006', 'IR_108'])
 
 
 def blend(ch1, ch2):
@@ -686,7 +769,8 @@ def dwd_Fernsehbild(self):
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data =\
-            self._dwd_get_alpha_channel().data.astype(np.float64) / 255.0
+            self._dwd_get_day_night_alpha_channel().data.astype(np.float64)\
+            / 255.0
         # create day image
         day_img.putalpha(alpha_data)
         day_img.enhance(inverse=(False, True))
@@ -811,7 +895,8 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     if img_type == IMAGETYPES.DAY_NIGHT:
         alpha_data =\
-            self._dwd_get_alpha_channel().data.astype(np.float64) / 255.0
+            self._dwd_get_day_night_alpha_channel().data.astype(np.float64)\
+            / 255.0
         # create day image
         day_img.putalpha(alpha_data)
         day_img.enhance(inverse=(False, True))
@@ -903,32 +988,34 @@ def hist_equalize_v2(data, val_min, val_max, dest_min=None):
     [dest_min, 255]
     '''
     hist_length = val_max - val_min + 1
-    
+
     # Mask values outside of the range.
     scaled = np.ma.masked_outside(data, val_min, val_max)
     c_scaled = np.ma.compressed(scaled)
     # Create histogram and calculate cumulative distributive function.
     hist, _ = np.histogram(c_scaled, hist_length, range=(val_min, val_max))
     cdf = hist.cumsum()
-    
+
     # Create lookup table.
     factor = (val_max - val_min) * 1.0 / (cdf[-1] - cdf[0]) * 1.0
     lut = (cdf - cdf[0]) * factor + val_min
     if dest_min is not None:
         # Shift and shrink to [dest_min, 255].
-        lut = ((lut-val_min)/float(hist_length))*(255.0-dest_min)+dest_min
-        
+        lut = ((lut - val_min) / float(hist_length)) * (255.0 - dest_min) \
+            + dest_min
+
     # Round.
     lut = lut + 0.5
     lut = lut.astype('uint8')
-    
+
     # Apply lookup table values conditionally if masked valeus are present.
     if scaled.mask.any():
-        scaled[~scaled.mask] = lut[scaled[~scaled.mask].astype('uint8') - val_min]
+        scaled[~scaled.mask] = \
+            lut[scaled[~scaled.mask].astype('uint8') - val_min]
     else:
         scaled = lut[scaled.astype('uint8') - val_min]
         scaled = np.ma.masked_array(scaled, mask=False)
-        
+
     # Set mask to the incoming one.
     scaled.mask = data.mask
     return scaled
@@ -991,13 +1078,15 @@ seviri = [
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
     _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
-    _dwd_get_hrvc_channel, _dwd_get_alpha_channel, _dwd_get_image_type,
+    _dwd_get_hrvc_channel, _dwd_get_day_night_alpha_channel,
+    _dwd_get_image_type,
     _dwd_create_RGB_image, dwd_ninjo_VIS006, dwd_ninjo_VIS008,
     dwd_ninjo_IR_016, dwd_ninjo_IR_039, dwd_ninjo_WV_062, dwd_ninjo_WV_073,
     dwd_ninjo_IR_087, dwd_ninjo_IR_097, dwd_ninjo_IR_108, dwd_ninjo_IR_120,
     dwd_ninjo_IR_134, dwd_ninjo_HRV, dwd_airmass, dwd_schwere_konvektion_tag,
     dwd_dust, dwd_RGB_12_12_1_N, dwd_RGB_12_12_9i_N, dwd_Fernsehbild,
-    dwd_FernsehbildRGBA, _create_fernsehbild_rgba]
+    dwd_FernsehbildRGBA, _create_fernsehbild_rgba,
+    _dwd_create_day_night_image, dwd_IR_VIS]
 
 
 def dwd_ninjo_GOES_10_7(self):
@@ -1006,13 +1095,21 @@ def dwd_ninjo_GOES_10_7(self):
 dwd_ninjo_GOES_10_7.prerequisites = set(['10_7'])
 
 
+def dwd_GOES_IR_VIS(self):
+    """Make a DWD specific IR / VIS product depending sun zenith angle.
+    Use 10_7 for the night and 00_7 for the day.
+    """
+    return self._dwd_create_day_night_image('00_7', '10_7')
+
+dwd_GOES_IR_VIS.prerequisites = set(['00_7', '10_7'])
+
 imager13 = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
     _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
-    _dwd_get_alpha_channel, _dwd_get_image_type,
-    dwd_ninjo_GOES_10_7]
+    _dwd_get_day_night_alpha_channel, _dwd_get_image_type,
+    dwd_ninjo_GOES_10_7, _dwd_create_day_night_image, dwd_GOES_IR_VIS]
 
 imager15 = imager13
 
@@ -1027,7 +1124,7 @@ mviri = [
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
     _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
-    _dwd_get_alpha_channel, _dwd_get_image_type,
+    _dwd_get_day_night_alpha_channel, _dwd_get_image_type,
     dwd_ninjo_MTP_11_5]
 
 
@@ -1036,10 +1133,27 @@ def dwd_ninjo_H8_IR1(self):
 
 dwd_ninjo_H8_IR1.prerequisites = set(['IR1'])
 
+
+def dwd_ninjo_H8_VIS(self):
+    return self._dwd_create_single_channel_image('VIS')
+
+dwd_ninjo_H8_VIS.prerequisites = set(['VIS'])
+
+
+def dwd_H8_IR_VIS(self):
+    """Make a DWD specific IR / VIS product depending sun zenith angle.
+    Use IR1 for the night and VIS for the day.
+    """
+    return self._dwd_create_day_night_image('VIS', 'IR1')
+
+dwd_H8_IR_VIS.prerequisites = set(['VIS', 'IR1'])
+
 ahi = [
     _is_solar_channel, _dwd_kelvin_to_celsius,
     _dwd_apply_sun_zenith_angle_correction, _dwd_channel_preparation,
     _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
-    _dwd_get_alpha_channel, _dwd_get_image_type,
-    dwd_ninjo_H8_IR1]
+    _dwd_get_day_night_alpha_channel, _dwd_get_image_type,
+    dwd_ninjo_H8_IR1,
+    _dwd_create_day_night_image,
+    dwd_H8_IR_VIS, dwd_ninjo_H8_VIS]
