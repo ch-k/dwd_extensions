@@ -5,6 +5,7 @@ Created on 05.01.2015
 '''
 import numpy as np
 import logging
+import copy
 
 import mpop.imageo.geo_image as geo_image  # @UnresolvedImport
 from mpop.channel import Channel, NotLoadedError  # @UnresolvedImport
@@ -35,7 +36,8 @@ IMAGETYPES = Enum(('DAY_ONLY', 'NIGHT_ONLY', 'DAY_NIGHT'))
 
 
 def _dwd_create_single_channel_image(self, chn,
-                                     sun_zenith_angle_correction=True):
+                                     sun_zenith_angle_correction=True,
+                                     backup_orig_data=False):
     """Creates a calibrated and corrected single channel black/white image.
     Data calibration:
     HRV, VIS channels: albedo 0 - 125 %
@@ -51,7 +53,8 @@ def _dwd_create_single_channel_image(self, chn,
 
     # apply calibrations and corrections on channels
     if not self._dwd_channel_preparation(chn,
-                                         sun_zenith_angle_correction):
+                                         sun_zenith_angle_correction,
+                                         backup_orig_data=backup_orig_data):
         return None
 
     if self._is_solar_channel(chn):
@@ -70,18 +73,23 @@ def _dwd_create_single_channel_image(self, chn,
                               crange=(40, -87.5))
 
 
-def _dwd_apply_sun_zenith_angle_correction(self, chn):
+def _dwd_apply_sun_zenith_angle_correction(self, chn, backup_orig_data=False):
     """Apply sun zenith angle correction on solar channel data.
     """
     if self._is_solar_channel(chn) and \
             self[chn].info.get("sun_zen_corrected", None) is None:
         if self.area.lons is None or self.area.lats is None:
             self.area.lons, self.area.lats = self.area.get_lonlats()
+
+        if backup_orig_data:
+            self[chn].data_orig = self[chn].data
+            self[chn].info_orig = copy.deepcopy(self[chn].info)
+        
         sun_zen_chn = self[chn].sunzen_corr(get_first(self.time_slot),
                                             limit=85.)
-        self[chn].data_orig = self[chn].data 
         self[chn].data = sun_zen_chn.data.copy()
         del(sun_zen_chn)
+
 
 def _dwd_undo_sun_zenith_angle_correction(self, chn):
     """Restore data before sun zenith angle correction was done.
@@ -89,10 +97,12 @@ def _dwd_undo_sun_zenith_angle_correction(self, chn):
     if self[chn].info.get("sun_zen_corrected", None) is not None:
         try:
             self[chn].data = self[chn].data_orig
+            self[chn].info = self[chn].info_orig
             del self[chn].data_orig
-            self[chn].info.remove("sun_zen_corrected")
+            del self[chn].info_orig
+            LOGGER.info("Restored orginal data for channel " + str(chn))
         except AttributeError:
-            LOGGER.error(
+            LOGGER.info(
                 "Cannot restore orginal data for channel " + str(chn) +
                 ", data_orig does not exist")
 
@@ -133,7 +143,9 @@ def _is_solar_channel(self, chn):
 
 def _dwd_channel_preparation(self,
                              channels,
-                             sun_zenith_angle_correction=True):
+                             sun_zenith_angle_correction=True,
+                             backup_orig_data=False
+                             ):
     """Applies to the given channels DWD specific calibrations and corrections.
     Returns True if the calculations were successful; False otherwise.
     """
@@ -144,7 +156,9 @@ def _dwd_channel_preparation(self,
 
     for c in channels:
         if sun_zenith_angle_correction:
-            self._dwd_apply_sun_zenith_angle_correction(c)
+            self._dwd_apply_sun_zenith_angle_correction(
+                c,
+                backup_orig_data=backup_orig_data)
         else:
             self._dwd_undo_sun_zenith_angle_correction(c)
         self._dwd_apply_view_zenith_angle_correction(c)
@@ -291,7 +305,7 @@ def _dwd_create_RGB_image(self, channels, cranges):
                                   crange=cranges)
 
 
-def dwd_airmass(self):
+def dwd_airmass(self, backup_orig_data=False):
     """Make a DWD specific RGB image composite.
     +--------------------+--------------------+--------------------+
     | Channels           | Span               | Gamma              |
@@ -305,7 +319,8 @@ def dwd_airmass(self):
     """
     self.check_channels(6.7, 7.3, 9.7, 10.8)
 
-    if not self._dwd_channel_preparation([6.7, 7.3, 9.7, 10.8]):
+    if not self._dwd_channel_preparation([6.7, 7.3, 9.7, 10.8],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     ch1 = self[6.7].data - self[7.3].data
@@ -321,7 +336,7 @@ def dwd_airmass(self):
 dwd_airmass.prerequisites = set([6.7, 7.3, 9.7, 10.8])
 
 
-def dwd_schwere_konvektion_tag(self):
+def dwd_schwere_konvektion_tag(self, backup_orig_data=False):
     """Make a DWD specific RGB image composite.
     +--------------------+--------------------+--------------------+
     | Channels           | Span               | Gamma              |
@@ -335,7 +350,8 @@ def dwd_schwere_konvektion_tag(self):
     """
     self.check_channels(0.635, 1.63, 3.75, 6.7, 7.3, 10.8)
 
-    if not self._dwd_channel_preparation([0.635, 1.63, 3.75, 6.7, 7.3, 10.8]):
+    if not self._dwd_channel_preparation([0.635, 1.63, 3.75, 6.7, 7.3, 10.8],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     ch1 = self[6.7].data - self[7.3].data
@@ -354,7 +370,7 @@ dwd_schwere_konvektion_tag.prerequisites = set(
     [0.635, 1.63, 3.75, 6.7, 7.3, 10.8])
 
 
-def dwd_dust(self):
+def dwd_dust(self, backup_orig_data=False):
     """Make a DWD specific RGB image composite.
 
     +--------------------+--------------------+--------------------+
@@ -369,7 +385,8 @@ def dwd_dust(self):
     """
     self.check_channels(8.7, 10.8, 12.0)
 
-    if not self._dwd_channel_preparation([8.7, 10.8, 12.0]):
+    if not self._dwd_channel_preparation([8.7, 10.8, 12.0],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     ch1 = self[12.0].data - self[10.8].data
@@ -386,7 +403,7 @@ def dwd_dust(self):
 dwd_dust.prerequisites = set([8.7, 10.8, 12.0])
 
 
-def dwd_RGB_12_12_1_N(self):
+def dwd_RGB_12_12_1_N(self, backup_orig_data=False):
     """Make a DWD specific composite depending sun zenith angle.
     +--------------------+--------------------+--------------------+
     | Channels           | Span               | Gamma              |
@@ -401,7 +418,8 @@ def dwd_RGB_12_12_1_N(self):
     """
     self.check_channels(0.635, 0.85, "HRV", 10.8)
 
-    if not self._dwd_channel_preparation([0.635, 0.85, "HRV", 10.8]):
+    if not self._dwd_channel_preparation([0.635, 0.85, "HRV", 10.8],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     img_type = self._dwd_get_image_type()
@@ -459,7 +477,7 @@ def dwd_RGB_12_12_1_N(self):
 dwd_RGB_12_12_1_N.prerequisites = set([0.635, 0.85, "HRV", 10.8])
 
 
-def dwd_RGB_12_12_9i_N(self):
+def dwd_RGB_12_12_9i_N(self, backup_orig_data=False):
     """Make a DWD specific composite depending sun zenith angle.
     day:
     +--------------------+--------------------+--------------------+
@@ -484,7 +502,8 @@ def dwd_RGB_12_12_9i_N(self):
     """
     self.check_channels("HRV", 0.85, 10.8, 3.75, 12.0)
 
-    if not self._dwd_channel_preparation(["HRV", 0.85, 10.8, 3.75, 12.0]):
+    if not self._dwd_channel_preparation(["HRV", 0.85, 10.8, 3.75, 12.0],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     # get combination of HRV and VIS008 channel data
@@ -619,7 +638,8 @@ def _dwd_create_day_night_image(self,
                                 night_chn_name,
                                 sun_zenith_angle_correction=True,
                                 alpha_sz_day_limit=None,
-                                alpha_sz_night_limit=None):
+                                alpha_sz_night_limit=None,
+                                backup_orig_data=False):
     """Make a DWD specific IR / VIS product depending sun zenith angle.
     i.e.: use IR10.8 for the night and VIS006 for the day.
     """
@@ -640,7 +660,8 @@ def _dwd_create_day_night_image(self,
     if not day_chn_available:
         img = self._dwd_create_single_channel_image(
             night_chn_name,
-            sun_zenith_angle_correction)
+            sun_zenith_angle_correction,
+            backup_orig_data=backup_orig_data)
         return img
 
     # if not self._dwd_channel_preparation(day_chn_name):
@@ -653,13 +674,15 @@ def _dwd_create_day_night_image(self,
     if img_type == IMAGETYPES.DAY_ONLY:
         img = self._dwd_create_single_channel_image(
             day_chn_name,
-            sun_zenith_angle_correction)
+            sun_zenith_angle_correction,
+            backup_orig_data=backup_orig_data)
         return img
 
     if img_type == IMAGETYPES.NIGHT_ONLY:
         img = self._dwd_create_single_channel_image(
             night_chn_name,
-            sun_zenith_angle_correction)
+            sun_zenith_angle_correction,
+            backup_orig_data=backup_orig_data)
         return img
 
     if img_type == IMAGETYPES.DAY_NIGHT:
@@ -670,7 +693,8 @@ def _dwd_create_day_night_image(self,
         # create day image
         day_img = self._dwd_create_single_channel_image(
             day_chn_name,
-            sun_zenith_angle_correction)
+            sun_zenith_angle_correction,
+            backup_orig_data=backup_orig_data)
         # day_img.channels[0].mask[alpha_data==1.0] = 0.0
         day_img.putalpha(alpha_data)
         day_img.enhance(inverse=(False, True))
@@ -678,7 +702,8 @@ def _dwd_create_day_night_image(self,
         # create night image
         night_img = self._dwd_create_single_channel_image(
             night_chn_name,
-            sun_zenith_angle_correction)
+            sun_zenith_angle_correction,
+            backup_orig_data=backup_orig_data)
         night_img.putalpha(alpha_data)
 
         # blending does not work correctly when pixels are masked in only
@@ -704,14 +729,17 @@ def _dwd_create_day_night_image(self,
 def dwd_IR_VIS(self,
                sun_zenith_angle_correction=True,
                alpha_sz_day_limit=None,
-               alpha_sz_night_limit=None):
+               alpha_sz_night_limit=None,
+               backup_orig_data=False):
     """Make a DWD specific IR / VIS product depending sun zenith angle.
     Use IR10.8 for the night and VIS006 for the day.
     """
-    return self._dwd_create_day_night_image('VIS006', 'IR_108',
+    return self._dwd_create_day_night_image(
+        'VIS006', 'IR_108',
         sun_zenith_angle_correction=sun_zenith_angle_correction,
         alpha_sz_day_limit=alpha_sz_day_limit,
-        alpha_sz_night_limit=alpha_sz_night_limit)
+        alpha_sz_night_limit=alpha_sz_night_limit,
+        backup_orig_data=backup_orig_data)
 
 dwd_IR_VIS.prerequisites = set(['VIS006', 'IR_108'])
 
@@ -855,7 +883,8 @@ def select_range_and_scale(data, color_min, color_max, fac=1.0):
 def _create_fernsehbild_rgba(self, ct_alpha_def,
                              erosion_size=5, gaussion_filter_sigma=3,
                              dark_transparency_factor=3.0,
-                             contrast_optimization_expr=None):
+                             contrast_optimization_expr=None,
+                             backup_orig_data=False):
     """
     """
     if contrast_optimization_expr is None:
@@ -881,7 +910,8 @@ def _create_fernsehbild_rgba(self, ct_alpha_def,
 
     self.check_channels("HRV", 0.85, 10.8)
 
-    if not self._dwd_channel_preparation(["HRV", 0.85, 10.8]):
+    if not self._dwd_channel_preparation(["HRV", 0.85, 10.8],
+                                         backup_orig_data=backup_orig_data):
         return None
 
     # get combination of HRV and VIS008 channel data
@@ -989,7 +1019,8 @@ def dwd_FernsehbildRGBA(self, ct_alpha=None,
                         erosion_size=None,
                         gaussion_filter_sigma=None,
                         dark_transparency_factor=3.0,
-                        contrast_optimization_expr=None):
+                        contrast_optimization_expr=None,
+                        backup_orig_data=False):
     """
     """
     if ct_alpha is None:
@@ -1003,7 +1034,8 @@ def dwd_FernsehbildRGBA(self, ct_alpha=None,
                                          erosion_size,
                                          gaussion_filter_sigma,
                                          dark_transparency_factor,
-                                         contrast_optimization_expr)
+                                         contrast_optimization_expr,
+                                         backup_orig_data=backup_orig_data)
 
 dwd_FernsehbildRGBA.prerequisites = set(["HRV", 0.85, 10.8, "CloudType"])
 
@@ -1145,8 +1177,10 @@ seviri = [
     _dwd_create_day_night_image, dwd_IR_VIS]
 
 
-def dwd_ninjo_GOES_10_7(self):
-    return self._dwd_create_single_channel_image('10_7')
+def dwd_ninjo_GOES_10_7(self, backup_orig_data=False):
+    return self._dwd_create_single_channel_image(
+        '10_7',
+        backup_orig_data=backup_orig_data)
 
 dwd_ninjo_GOES_10_7.prerequisites = set(['10_7'])
 
@@ -1154,14 +1188,17 @@ dwd_ninjo_GOES_10_7.prerequisites = set(['10_7'])
 def dwd_GOES_IR_VIS(self,
                     sun_zenith_angle_correction=True,
                     alpha_sz_day_limit=None,
-                    alpha_sz_night_limit=None):
+                    alpha_sz_night_limit=None,
+                    backup_orig_data=False):
     """Make a DWD specific IR / VIS product depending sun zenith angle.
     Use 10_7 for the night and 00_7 for the day.
     """
-    return self._dwd_create_day_night_image('00_7', '10_7',
+    return self._dwd_create_day_night_image(
+        '00_7', '10_7',
         sun_zenith_angle_correction=sun_zenith_angle_correction,
         alpha_sz_day_limit=alpha_sz_day_limit,
-        alpha_sz_night_limit=alpha_sz_night_limit)
+        alpha_sz_night_limit=alpha_sz_night_limit,
+        backup_orig_data=backup_orig_data)
 
 dwd_GOES_IR_VIS.prerequisites = set(['00_7', '10_7'])
 
@@ -1192,8 +1229,10 @@ mviri = [
     dwd_ninjo_MTP_11_5]
 
 
-def dwd_ninjo_H8_IR1(self):
-    return self._dwd_create_single_channel_image('IR1')
+def dwd_ninjo_H8_IR1(self, backup_orig_data=False):
+    return self._dwd_create_single_channel_image(
+        'IR1',
+        backup_orig_data=backup_orig_data)
 
 dwd_ninjo_H8_IR1.prerequisites = set(['IR1'])
 
@@ -1207,7 +1246,8 @@ dwd_ninjo_H8_VIS.prerequisites = set(['VIS'])
 def dwd_H8_IR_VIS(self,
                   sun_zenith_angle_correction=True,
                   alpha_sz_day_limit=None,
-                  alpha_sz_night_limit=None):
+                  alpha_sz_night_limit=None,
+                  backup_orig_data=False):
     """Make a DWD specific IR / VIS product depending sun zenith angle.
     Use IR1 for the night and VIS for the day.
     """
@@ -1215,7 +1255,8 @@ def dwd_H8_IR_VIS(self,
         'VIS', 'IR1',
         sun_zenith_angle_correction=sun_zenith_angle_correction,
         alpha_sz_day_limit=alpha_sz_day_limit,
-        alpha_sz_night_limit=alpha_sz_night_limit)
+        alpha_sz_night_limit=alpha_sz_night_limit,
+        backup_orig_data=backup_orig_data)
 
 dwd_H8_IR_VIS.prerequisites = set(['VIS', 'IR1'])
 
