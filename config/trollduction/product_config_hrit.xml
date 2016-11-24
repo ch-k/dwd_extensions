@@ -854,8 +854,7 @@
             <input_pattern>IODC.*_NIR016_.*</input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_AFRIKA_EUROPA_NIR016_nq0003km_{time_eos:%Y%m%d%H%M}.tif
-            </dest_filename>
+            <dest_filename>{service_name}_NIR016_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
                 <physic_unit>%</physic_unit>
@@ -872,7 +871,7 @@
             </input_pattern>
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
-            <dest_filename>METEOSAT_AFRIKA_EUROPA_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif
+            <dest_filename>{service_name}_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             </dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
