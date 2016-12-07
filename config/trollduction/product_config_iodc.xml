@@ -35,7 +35,7 @@
         </area>
 
 
-        <area id="msg8test" name="msg8test" process_num="0" srch_radius="60000">
+        <area id="nq041E3km" name="nq041E3km" process_num="0" srch_radius="60000">
              <product id="dwd_ninjo_VIS006" name="VIS006">
                 <file>{service_name}_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</file>
             </product>
