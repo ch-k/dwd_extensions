@@ -872,7 +872,6 @@
             <rule_group>ninjo</rule_group>
             <out_box_ref>ninjo</out_box_ref>
             <dest_filename>{service_name}_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
-            </dest_filename>
             <format>mpop.imageo.formats.ninjotiff</format>
             <format_params>
                 <physic_unit>C</physic_unit>
