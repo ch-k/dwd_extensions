@@ -5,7 +5,7 @@
 """
 
 __major__ = "0"
-__minor__ = "1"
+__minor__ = "5"
 __release__ = "0"
 
 __version__ = __major__ + "." + __minor__ + "." + __release__
