@@ -21,7 +21,8 @@
 
 '''This module defines a readers for satellite incidents and announcements
 '''
-from lxml import etree
+#from lxml import etree
+import xml.etree.ElementTree as etree
 from dwd_extensions.sat_incidents.repository import Announcement
 from dwd_extensions.sat_incidents.repository import AffectedEntity
 from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
