@@ -965,28 +965,35 @@
 
 	
 	<!-- INTERNET / GEOSERVER -->
-	<rule>
+        <rule>
+            <input_pattern>METEOSAT_EUROPA_GESAMT_HRV_nqeuro1km_.*</input_pattern>
+            <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
+            <out_box_ref>browser</out_box_ref>
+            <copySrcFileOnly>true</copySrcFileOnly>
+        </rule> 
+	
+        <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-1-N_nqeuro1km_.*</input_pattern>
             <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <out_box_ref>browser</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
-	<rule>
+        <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_RGB-12-12-9i-N_nqeuro1km_.*</input_pattern>
             <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <out_box_ref>browser</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
-	<rule>
+        <rule>
             <input_pattern>METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_.*</input_pattern>
             <dest_filename>WWW_METEOSAT_EUROPA_GESAMT_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <out_box_ref>browser</out_box_ref>
             <copySrcFileOnly>true</copySrcFileOnly>
         </rule>
 
-	<rule>
+        <rule>
             <input_pattern>METEOSAT_AFRIKA_EUROPA_IR108_nq0003km_.*</input_pattern>
             <dest_filename>WWW_METEOSAT_AFRIKA_EUROPA_{productname_no_underscore}_{areaname}_{time_eos:%Y%m%d%H%M}.tif</dest_filename>
             <out_box_ref>browser</out_box_ref>
