@@ -50,6 +50,9 @@ from dwd_extensions.tools.config_watcher import ConfigWatcher
 from dwd_extensions.tools.image_io import read_image
 
 LOGGER = logging.getLogger("postprocessor")
+HOUR = 60 * 60
+DAY = HOUR * 24
+MONTH = DAY * 31
 
 
 def to_unix_seconds(dt):
@@ -95,6 +98,13 @@ class DataProcessor(object):
                         else:
                             self.dataset_processors.append(value)
 
+    def _rra(self, cf, interval, timespan, step_size):
+        rrd_param = 'RRA:{}:0.5:{}:{}'.format(
+            cf,
+            interval / step_size,
+            timespan / interval)
+        return rrd_param
+
     def save_img(self, geo_img, src_fname, dest_fname,
                  rrd_fname, rrd_steps, timeslot, params):
         save_params = self.get_save_arguments(params)
@@ -124,23 +134,18 @@ class DataProcessor(object):
                                # step size 900s=15min
                                # each step represents one time slot
                                '--step', str(rrd_steps),
-                               ['DS:epi2product:GAUGE:' + str(rrd_steps) + ':U:U',
-                                'DS:timeslot2product:GAUGE:' + str(rrd_steps) + ':U:U'],
-                               'RRA:MAX:0.5:1:1',
-                               # keep 15 min max for 1 day
-                               'RRA:MAX:0.5:1:1d',
-                               # hourly average over 7 days
-                               'RRA:AVERAGE:0.5:1h:7d',
-                               # hourly maximum over 90 days
-                               'RRA:MAX:0.5:1h:7d',
-                               # hourly minimum over 90 days
-                               'RRA:MIN:0.5:1h:7d',
-                               # daily average over 90 days
-                               'RRA:AVERAGE:0.5:1d:90d',
-                               # daily maximum over 90 days
-                               'RRA:MAX:0.5:1d:90d',
-                               # daily minimum over 90 days
-                               'RRA:MIN:0.5:1d:90d')
+                               ['DS:epi2product:GAUGE:{}:U:U'.format(
+                                   rrd_steps),
+                                'DS:timeslot2product:GAUGE:{}:U:U'.format(
+                                   rrd_steps)],
+                                # keep step_size max for 4 months
+                                self._rra('MAX', rrd_steps, 4 * MONTH, rrd_steps),
+                                # hourly average over 12 months days
+                                self._rra('AVERAGE', HOUR, 12 * MONTH, rrd_steps),
+                                # hourly maximum over 12 months days
+                                self._rra('MAX', HOUR, 12 * MONTH, rrd_steps),
+                                # hourly minumum over 12 months days
+                                self._rra('MIN', HOUR, 12 * MONTH, rrd_steps))
 
                 skip = False
                 try:
@@ -169,6 +174,18 @@ class DataProcessor(object):
                         LOGGER.debug(
                             "rrd update %s %s" % (rrd_fname, update_stmt))
                         rrd.update(rrd_fname, update_stmt)
+
+#                         LOGGER.warning("filling rrd file with random data")
+#                         import random
+#                         for n in xrange(rrd_steps, 24 * MONTH, rrd_steps):
+#                             ran_num = 2.0 * random.random()
+#                             update_stmt = str(timeslot_sec + n) +\
+#                                 ':' + str(int(ran_num * (t_product - t_epi))) +\
+#                                 ':' + str(int(ran_num * (t_product - timeslot_sec)))
+#                             LOGGER.debug(
+#                                 "rrd update %s %s" % (rrd_fname, update_stmt))
+#                             rrd.update(rrd_fname, update_stmt)    
+
                     except Exception as e:
                         if 'minimum one second step' in str(e):
                             LOGGER.info(
