@@ -81,3 +81,12 @@ class SatDataAvailabilityService(object):
         if ann:
             return ann.impact
         return None
+
+    def dump(self):
+        '''
+        print all stored announcements to stdout
+        '''
+        print "dumping current database content:"
+        anns = self.repo.find_all()
+        for ann in anns:
+            print ann

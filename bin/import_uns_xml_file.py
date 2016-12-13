@@ -42,13 +42,21 @@ Importer for EUMETSAT User Notification Service XML files
         metavar="FILE",
         help="path to EUMETSAT User Notification Service XML file")
 
-    parser.add_option("-s", "--sat-data-availability-config",
-                      action="store",
-                      type="string",
-                      dest="sat_availability_config",
-                      metavar="FILE",
-                      help="path to configuration of "
-                      "satellite availability service")
+    parser.add_option(
+        "-s", "--sat-data-availability-config",
+        action="store",
+        type="string",
+        dest="sat_availability_config",
+        metavar="FILE",
+        help="path to configuration of "
+        "satellite availability service")
+
+    parser.add_option(
+        "-d", "--dump",
+        action="store_true",
+        dest="dump",
+        default=False,
+        help="dump database content")
 
     try:
         (options, _) = parser.parse_args()
@@ -58,6 +66,9 @@ Importer for EUMETSAT User Notification Service XML files
 
     service = SatDataAvailabilityService(
         config_yml_filename=options.sat_availability_config)
-    print "starting import ..."
-    service.import_uns_file(options.uns_xml_file)
-    print "import finished"
+    if options.dump:
+        service.dump()
+    else:
+        print "starting import ..."
+        service.import_uns_file(options.uns_xml_file)
+        print "import finished"
