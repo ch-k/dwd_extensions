@@ -1,4 +1,4 @@
-db_filename: %CONFIGDIR%/sat_incidents.db
+sat_incidents_db_filename: %CONFIGDIR%/sat_incidents.db
 product2affected_entity_map:
   "IODC_.*":            ["41° E IODC", "MET-8"]
   ".*METEOSAT_.*":      ["0° SEVIRI LEVEL 1\\.5 IMAGE DATA", "MET-10"] 

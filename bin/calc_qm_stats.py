@@ -14,11 +14,6 @@ from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
 from dwd_extensions.sat_incidents.service import SatDataAvailabilityService
 import rrdtool as rrd
 
-STATUS_OK = 0
-STATUS_WARNING = 1
-STATUS_CRITICAL = 2
-STATUS_UNKNOWN = 3
-
 
 def listfiles(d, pattern):
     """return list of files in directory"""
@@ -185,13 +180,7 @@ def main():
         lambda self, formatter: self.epilog
 
     description = """\
-This script can be used as Nagios plugin to check the product files created
-by trollduction. The script iterates over the rrd files (created and updated by
-trollductions postprocessor) in the specified directory.
-
-IMPORTANT ASSUMPTIONS:
-
-The performance data of each product is written into an own rrd file.
+This script calculates monthly QM statistics
 
 """
 

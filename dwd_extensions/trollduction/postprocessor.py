@@ -48,15 +48,11 @@ import trollduction.helper_functions as helper_functions
 from dwd_extensions.layout import LayoutHandler
 from dwd_extensions.tools.config_watcher import ConfigWatcher
 from dwd_extensions.tools.image_io import read_image
+from dwd_extensions.tools.rrd_utils import to_unix_seconds
+from dwd_extensions.tools.rrd_utils import create_rrd_file
+from dwd_extensions.tools.rrd_utils import update_rrd_file
 
 LOGGER = logging.getLogger("postprocessor")
-HOUR = 60 * 60
-DAY = HOUR * 24
-MONTH = DAY * 31
-
-
-def to_unix_seconds(dt):
-    return int(dt.strftime("%s"))
 
 
 class DataProcessor(object):
@@ -98,13 +94,6 @@ class DataProcessor(object):
                         else:
                             self.dataset_processors.append(value)
 
-    def _rra(self, cf, interval, timespan, step_size):
-        rrd_param = 'RRA:{}:0.5:{}:{}'.format(
-            cf,
-            interval / step_size,
-            timespan / interval)
-        return rrd_param
-
     def save_img(self, geo_img, src_fname, dest_fname,
                  rrd_fname, rrd_steps, timeslot, params):
         save_params = self.get_save_arguments(params)
@@ -129,23 +118,7 @@ class DataProcessor(object):
             if os.path.exists(dest_fname):
                 timeslot_sec = to_unix_seconds(timeslot)
                 if not os.path.exists(rrd_fname):
-                    rrd.create(rrd_fname,
-                               '--start', str(timeslot_sec - rrd_steps),
-                               # step size 900s=15min
-                               # each step represents one time slot
-                               '--step', str(rrd_steps),
-                               ['DS:epi2product:GAUGE:{}:U:U'.format(
-                                   rrd_steps),
-                                'DS:timeslot2product:GAUGE:{}:U:U'.format(
-                                   rrd_steps)],
-                                # keep step_size max for 4 months
-                                self._rra('MAX', rrd_steps, 4 * MONTH, rrd_steps),
-                                # hourly average over 12 months days
-                                self._rra('AVERAGE', HOUR, 12 * MONTH, rrd_steps),
-                                # hourly maximum over 12 months days
-                                self._rra('MAX', HOUR, 12 * MONTH, rrd_steps),
-                                # hourly minumum over 12 months days
-                                self._rra('MIN', HOUR, 12 * MONTH, rrd_steps))
+                    create_rrd_file(rrd_fname, timeslot_sec, rrd_steps)
 
                 skip = False
                 try:
@@ -168,23 +141,7 @@ class DataProcessor(object):
 
                 if skip is False:
                     try:
-                        update_stmt = str(timeslot_sec) +\
-                            ':' + str(int(t_product - t_epi)) +\
-                            ':' + str(int(t_product - timeslot_sec))
-                        LOGGER.debug(
-                            "rrd update %s %s" % (rrd_fname, update_stmt))
-                        rrd.update(rrd_fname, update_stmt)
-
-#                         LOGGER.warning("filling rrd file with random data")
-#                         import random
-#                         for n in xrange(rrd_steps, 24 * MONTH, rrd_steps):
-#                             ran_num = 2.0 * random.random()
-#                             update_stmt = str(timeslot_sec + n) +\
-#                                 ':' + str(int(ran_num * (t_product - t_epi))) +\
-#                                 ':' + str(int(ran_num * (t_product - timeslot_sec)))
-#                             LOGGER.debug(
-#                                 "rrd update %s %s" % (rrd_fname, update_stmt))
-#                             rrd.update(rrd_fname, update_stmt)    
+                        update_rrd_file(rrd_fname, timeslot_sec, t_epi, t_product)
 
                     except Exception as e:
                         if 'minimum one second step' in str(e):

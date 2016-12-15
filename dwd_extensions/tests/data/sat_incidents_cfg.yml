@@ -1,4 +1,4 @@
-db_filename: 
+sat_incidents_db_filename: 
 product2affected_entity_map:
   "Fernsehbild.*":     ["0° SEVIRI LEVEL 1\\.5 IMAGE DATA", "MET-10", "NWC SAF.*", "MET-9"] 
   "WCM_.*":             ["0° SEVIRI LEVEL 1\\.5 IMAGE DATA", "MET-10", "41° E IODC", "MET-8", "GOES13", "GOES15", "HIMAWARI-8"] 

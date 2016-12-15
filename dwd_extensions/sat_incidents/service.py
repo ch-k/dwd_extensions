@@ -50,7 +50,7 @@ class SatDataAvailabilityService(object):
             self.config = config
 
         self.repo = Repository(
-            self.config['db_filename'],
+            self.config['sat_incidents_db_filename'],
             prod2affected_entity_pattern_map=self.config[
                 'product2affected_entity_map'])
 
