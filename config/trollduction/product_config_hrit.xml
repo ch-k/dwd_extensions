@@ -846,7 +846,7 @@
                 <ch_min_measurement_unit>0</ch_min_measurement_unit>
                 <ch_max_measurement_unit>125</ch_max_measurement_unit>
                 <ninjo_product_name>{productname}</ninjo_product_name>
-                <sat_id>6200014</sat_id>
+                <sat_id>7100014</sat_id>
             </format_params>
         </rule>
     
@@ -862,7 +862,7 @@
                 <ch_min_measurement_unit>0</ch_min_measurement_unit>
                 <ch_max_measurement_unit>125</ch_max_measurement_unit>
                 <ninjo_product_name>IR_016</ninjo_product_name>
-                <sat_id>6200014</sat_id>
+                <sat_id>7100014</sat_id>
             </format_params>
         </rule>
     
@@ -878,7 +878,7 @@
                 <ch_min_measurement_unit>40</ch_min_measurement_unit>
                 <ch_max_measurement_unit>-87.5</ch_max_measurement_unit>
                 <ninjo_product_name>{productname}</ninjo_product_name>
-                <sat_id>6200014</sat_id>
+                <sat_id>7100014</sat_id>
             </format_params>
         </rule>
         
