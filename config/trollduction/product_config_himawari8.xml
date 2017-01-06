@@ -35,6 +35,29 @@
         </area>
 
 
+        <area id="nq140E3km" name="nq140E3km" srch_radius="70000">
+            <product id="dwd_ninjo_H8_IR1" name="IR1">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+
+            <product id="dwd_ninjo_H8_IR3" name="IR3">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+
+            <product id="dwd_ninjo_H8_IR4" name="IR4">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+
+            <product id="dwd_ninjo_H8_VIS" name="VIS">
+                <file>{service_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif</file>
+            </product>  
+        </area>
+
+
+
     </product_list>
 
 </product_config>

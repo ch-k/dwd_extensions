@@ -137,7 +137,7 @@ def _is_solar_channel(self, chn):
     to solar wave length.
     Returns true if the given channel is a visual one; false otherwise.
     """
-    return self[chn].wavelength_range[2] < 4 or chn in[
+    return self[chn].wavelength_range[2] < 3.9 or chn in[
         'HRV', 'VIS006', 'VIS008', 'IR_016']
 
 
@@ -1262,6 +1262,22 @@ def dwd_ninjo_H8_IR1(self, backup_orig_data=False):
 dwd_ninjo_H8_IR1.prerequisites = set(['IR1'])
 
 
+def dwd_ninjo_H8_IR3(self, backup_orig_data=False):
+    return self._dwd_create_single_channel_image(
+        'IR3',
+        backup_orig_data=backup_orig_data)
+
+dwd_ninjo_H8_IR3.prerequisites = set(['IR3'])
+ 
+ 
+def dwd_ninjo_H8_IR4(self, backup_orig_data=False):
+    return self._dwd_create_single_channel_image(
+        'IR4',
+        backup_orig_data=backup_orig_data)
+
+dwd_ninjo_H8_IR4.prerequisites = set(['IR4'])
+
+
 def dwd_ninjo_H8_VIS(self):
     return self._dwd_create_single_channel_image('VIS')
 
@@ -1292,6 +1308,6 @@ ahi = [
     _dwd_apply_view_zenith_angle_correction,
     _dwd_create_single_channel_image, _dwd_get_sun_zenith_angles_channel,
     _dwd_get_day_night_alpha_channel, _dwd_get_image_type,
-    dwd_ninjo_H8_IR1,
+    dwd_ninjo_H8_IR1, dwd_ninjo_H8_IR3, dwd_ninjo_H8_IR4,
     _dwd_create_day_night_image,
     dwd_H8_IR_VIS, dwd_ninjo_H8_VIS]
