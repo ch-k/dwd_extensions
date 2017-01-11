@@ -10,8 +10,8 @@ from tempfile import mkstemp
 from datetime import datetime
 from datetime import timedelta
 from optparse import OptionParser
-from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
-from dwd_extensions.sat_incidents.service import SatDataAvailabilityService
+from dwd_extensions.qm.sat_incidents.repository import AnnouncementImpactEnum
+from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
 import rrdtool as rrd
 
 STATUS_OK = 0

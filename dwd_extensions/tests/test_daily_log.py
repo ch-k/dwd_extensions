@@ -30,9 +30,9 @@ from StringIO import StringIO
 from mock import patch
 from datetime import datetime
 
-from dwd_extensions.emc_dailylogs.repository import Repository
-from dwd_extensions.emc_dailylogs.reader import EumetcastDailylogReaderReader
-from dwd_extensions.emc_dailylogs.service import DailyLogService
+from dwd_extensions.qm.emc_dailylogs.repository import Repository
+from dwd_extensions.qm.emc_dailylogs.reader import EumetcastDailylogReaderReader
+from dwd_extensions.qm.emc_dailylogs.service import DailyLogService
 
 
 class TestEumetcastDailylog(unittest.TestCase):

@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from optparse import OptionParser
-from dwd_extensions.sat_incidents.service import SatDataAvailabilityService
+from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
 
 if __name__ == "__main__":
     # override default formater to allow line breaks

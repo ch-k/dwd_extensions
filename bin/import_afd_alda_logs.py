@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016 Ernst Basler + Partner
+# Copyright (c) 2017 Ernst Basler + Partner
 
 # Author(s):
 
@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from optparse import OptionParser
-from dwd_extensions.qm.emc_dailylogs.service import DailyLogService
+from dwd_extensions.qm.afd_alda_logs.service import AldaLogService
 from fnmatch import fnmatch
 import os
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         lambda self, formatter: self.epilog
 
     description = """\
-Importer for EUMETCAST Daily Log files
+Importer for AFD alda log files
 """
     parser = OptionParser(description=description)
     parser.add_option(
@@ -56,7 +56,7 @@ Importer for EUMETCAST Daily Log files
         action="store",
         type="string",
         dest="file_pattern",
-        default="E-UNS*",
+        default="*",
         metavar="PATTERN",
         help="file pattern to match files in input directory")
 
@@ -67,7 +67,7 @@ Importer for EUMETCAST Daily Log files
         dest="config_file",
         metavar="FILE",
         help="path to configuration of "
-        "daily log service")
+        "alda log service")
 
     parser.add_option(
         "--dump",
@@ -82,12 +82,14 @@ Importer for EUMETCAST Daily Log files
         parser.print_help()
         exit()
 
-    service = DailyLogService(
+    service = AldaLogService(
         config_yml_filename=options.config_file)
     if options.dump:
         service.dump()
     else:
         print "starting import ..."
         csv_files = listfiles(options.directory, options.file_pattern)
-        service.import_dailylog_files(csv_files)
+        for csv_file in csv_files:
+            print "importing " + csv_file
+            service.import_log_file(csv_file)
         print "import finished"

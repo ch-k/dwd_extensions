@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from fileinput import filename
 
 # Copyright (c) 2016 Ernst Basler + Partner
 
@@ -22,9 +23,16 @@
 '''This module defines a readers for satellite incidents and announcements
 '''
 import yaml
-from dwd_extensions.emc_dailylogs.repository import DailyLogEntry, RemarkEnum
-from dwd_extensions.emc_dailylogs.repository import Repository
-from dwd_extensions.emc_dailylogs.reader import EumetcastDailylogReaderReader
+from datetime import datetime
+import os
+from dwd_extensions.qm.emc_dailylogs.repository import DailyLogEntry
+from dwd_extensions.qm.emc_dailylogs.repository import RemarkEnum
+from dwd_extensions.qm.emc_dailylogs.repository import Repository
+from dwd_extensions.qm.emc_dailylogs.reader import EumetcastDailylogReaderReader
+
+
+def _get_file_modtime(filename):
+    return datetime.fromtimestamp(os.path.getmtime(filename))
 
 
 class DailyLogService(object):
@@ -53,7 +61,21 @@ class DailyLogService(object):
             prod2dailylog_records_pattern_map=self.config[
                 'prod2dailylog_records_pattern_map'])
 
+    def import_dailylog_files(self, filenames):
+        filenames = sorted(filenames, reverse=True, key=_get_file_modtime)
+        for filename in filenames:
+            self.import_dailylog_file(filename)
+
     def import_dailylog_file(self, filename):
+        max_date = self.get_oldest_allowed_date()
+        if max_date is not None:
+            moddate = _get_file_modtime(filename)
+            if moddate < max_date:
+                print "skipping {}, file too old ({} < {})".format(filename,
+                                                                   moddate,
+                                                                   max_date)
+                return
+        print "importing " + filename
         reader = EumetcastDailylogReaderReader(filename)
         self.repo.add(reader.get_items())
         self.delete_old_entries()
@@ -92,3 +114,7 @@ class DailyLogService(object):
     def delete_old_entries(self):
         days = self.config.get("max_age_days", 120)
         self.repo.delete_older_than(days)
+
+    def get_oldest_allowed_date(self):
+        days = self.config.get("max_age_days", 120)
+        return self.repo.get_oldest_allowed_date(days)

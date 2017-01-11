@@ -22,10 +22,10 @@
 '''This module defines a readers for satellite incidents and announcements
 '''
 import yaml
-from dwd_extensions.sat_incidents.repository import Announcement
-from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
-from dwd_extensions.sat_incidents.repository import Repository
-from dwd_extensions.sat_incidents.reader import EumetsatUserNotifcationReader
+from dwd_extensions.qm.sat_incidents.repository import Announcement
+from dwd_extensions.qm.sat_incidents.repository import AnnouncementImpactEnum
+from dwd_extensions.qm.sat_incidents.repository import Repository
+from dwd_extensions.qm.sat_incidents.reader import EumetsatUserNotifcationReader
 
 
 class SatDataAvailabilityService(object):

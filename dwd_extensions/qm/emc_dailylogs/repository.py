@@ -119,23 +119,32 @@ class Repository(object):
         ''' find all records in repository '''
         return self.session.query(DailyLogEntry).all()
 
-    def delete_older_than(self, days):
+    def get_oldest_allowed_date(self, days):
         ''' delete all records with reference_time older
         than *days* before newest record '''
         max_date = self.session.query(
             func.max(DailyLogEntry.reference_time)).select_from(
                 DailyLogEntry).scalar()
 
-        if max_date > datetime.utcnow():
-            print "max date in database is in future, using current date"
-            max_date = datetime.utcnow()
+        if max_date is not None:
+            if max_date > datetime.utcnow():
+                print "max date in database is in future, using current date"
+                max_date = datetime.utcnow()
 
-        max_date = max_date - timedelta(days=days)
+            max_date = max_date - timedelta(days=days)
 
-        print "deleting all records before {}".format(max_date)
+        return max_date
 
-        self.session.query(DailyLogEntry).filter(
-            DailyLogEntry.reference_time < max_date).delete()
+    def delete_older_than(self, days):
+        ''' delete all records with reference_time older
+        than *days* before newest record '''
+
+        max_date = self.get_oldest_allowed_date(days)
+        if max_date is not None:
+            print "deleting all records before {}".format(max_date)
+
+            self.session.query(DailyLogEntry).filter(
+                DailyLogEntry.reference_time < max_date).delete()
 
     def record_count(self):
         ''' return count of accouncements in repository '''

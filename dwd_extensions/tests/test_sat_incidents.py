@@ -29,10 +29,10 @@ from StringIO import StringIO
 from mock import patch
 from datetime import datetime
 
-from dwd_extensions.sat_incidents.repository import Repository
-from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
-from dwd_extensions.sat_incidents.reader import EumetsatUserNotifcationReader
-from dwd_extensions.sat_incidents.service import SatDataAvailabilityService
+from dwd_extensions.qm.sat_incidents.repository import Repository
+from dwd_extensions.qm.sat_incidents.repository import AnnouncementImpactEnum
+from dwd_extensions.qm.sat_incidents.reader import EumetsatUserNotifcationReader
+from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
 
 xml_annons = """<?xml version="1.0" encoding="UTF-8"?>
 <announcements>
@@ -185,7 +185,7 @@ class TestEumetsatUNS(unittest.TestCase):
         with open(os.path.join(self.dirname, 'data',
                                'sat_incidents_cfg.yml'), "r") as fid:
             config = yaml.safe_load(fid)
-        config['db_filename'] = self.db_filename
+        config['sat_incidents_db_filename'] = self.db_filename
         service = SatDataAvailabilityService(config=config)
         service.import_uns_file(StringIO(xml_annons))
         res = service.get_data_availability_error(
@@ -198,7 +198,7 @@ class TestEumetsatUNS(unittest.TestCase):
         in short version xml file """
 
         config = {}
-        config['db_filename'] = self.db_filename
+        config['sat_incidents_db_filename'] = self.db_filename
         config['product2affected_entity_map'] = {
             '.*Fernsehbild.*': ['HIMA.*', 'MET.*'],
             '.*Test2.*': ['Dep1.*', 'Dep2.*']
@@ -216,7 +216,7 @@ class TestEumetsatUNS(unittest.TestCase):
         in short version xml file """
 
         config = {}
-        config['db_filename'] = self.db_filename
+        config['sat_incidents_db_filename'] = self.db_filename
         config['product2affected_entity_map'] = {
             '.*Fernsehbild.*': ['HIMA.*'],
             '.*Test2.*': ['Dep1.*', 'Dep2.*']

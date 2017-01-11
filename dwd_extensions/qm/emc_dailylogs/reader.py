@@ -22,7 +22,7 @@
 '''This module defines a readers for satellite incidents and announcements
 '''
 import csv
-from dwd_extensions.emc_dailylogs.repository import DailyLogEntry, RemarkEnum
+from dwd_extensions.qm.emc_dailylogs.repository import DailyLogEntry, RemarkEnum
 from datetime import datetime
 from os.path import basename
 
@@ -72,11 +72,10 @@ class EumetcastDailylogReaderReader(object):
                         channel=row['channel'],
                         segment=row['segment']
                     )
+                    yield record
                 except Exception as ex:
                     print row
                     print str(ex)
-
-                yield record
 
     def _parse_datetime(self, row, field, format):
         val = row.get(field, None)

@@ -1,0 +1,8 @@
+daily_log_db_filename: "%CONFIGDIR%/daily_log.db"
+max_age_days: 120
+prod2dailylog_records_pattern_map:
+  "METEOSAT_EUROPA_GESAMT_IR108_.*":     
+    - {"source": "MSG_0DEG", "service": "H_SEVIRI", "satellite": "MSGx", "channel": "%", "segment": "EPI"} 
+    - {"source": "MSG_0DEG", "service": "H_SEVIRI", "satellite": "MSGx", "channel": "IR_108", "segment": "%"} 
+  "WarnappbildRGBA_.*":
+    - {"source": "MSG_0DEG", "service": "H_SEVIRI", "satellite": "MSGx", "channel": "%", "segment": "EPI"} 

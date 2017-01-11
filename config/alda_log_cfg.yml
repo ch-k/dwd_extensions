@@ -1,0 +1,9 @@
+alda_log_db_filename: "%CONFIGDIR%/afd_alda_log.db"
+max_age_days: 120
+reader_filename_patterns: ["{dummy}EPI______-{time:%Y%m%d%H%M}-__"]
+prod2aldalog_records_pattern_map:
+  "METEOSAT_EUROPA_GESAMT_IR108_.*":     
+    - {"min_count": 1, "dest_host": "%HOSTNAME%", "filename": "H-000-MSG%-EPI%"} 
+  "WarnappbildRGBA_.*":
+    - {"min_count": 1, "dest_host": "%HOSTNAME%", "filename": "H-000-MSG%-EPI%"} 
+    - {"min_count": 1, "dest_host": "%HOSTNAME%", "filename": "SAFNWC_%_CT%-EPI%"} 

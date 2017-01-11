@@ -22,10 +22,10 @@
 '''This module defines a readers for satellite incidents and announcements
 '''
 import xml.etree.ElementTree as etree
-from dwd_extensions.sat_incidents.repository import Announcement
-from dwd_extensions.sat_incidents.repository import AffectedEntity
-from dwd_extensions.sat_incidents.repository import AnnouncementImpactEnum
-from dwd_extensions.sat_incidents.repository import AnnouncementTypeEnum
+from dwd_extensions.qm.sat_incidents.repository import Announcement
+from dwd_extensions.qm.sat_incidents.repository import AffectedEntity
+from dwd_extensions.qm.sat_incidents.repository import AnnouncementImpactEnum
+from dwd_extensions.qm.sat_incidents.repository import AnnouncementTypeEnum
 from datetime import datetime
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
