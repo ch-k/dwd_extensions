@@ -36,6 +36,33 @@
             </product>
         </area>
 
+        <area id="nq075W3km" name="nq075W3km" srch_radius="60000">
+            <product id="dwd_ninjo_GOES_10_7" name="IR_107">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
+
+        <area id="nq075W3km" name="nq075W3km" srch_radius="60000">
+            <product id="dwd_ninjo_GOES_06_6" name="WV_066">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
+
+        <area id="nq075W3km" name="nq075W3km" srch_radius="60000">
+            <product id="dwd_ninjo_GOES_03_9" name="IR_039">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
+
+        <area id="nq075W3km" name="nq075W3km" srch_radius="60000">
+            <product id="dwd_ninjo_GOES_00_7" name="VIS007">
+                <file>{platform_name}_{productname}_{areaname}_{time:%Y%m%d%H%M}.tif
+                </file>
+            </product>
+        </area>
 
     </product_list>
 
