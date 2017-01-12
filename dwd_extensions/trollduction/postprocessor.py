@@ -125,7 +125,8 @@ class DataProcessor(object):
                     if isinstance(params['source_uri'], basestring):
                         t_epi = os.path.getmtime(params['source_uri'])
                     else:
-                        t_epi = max([os.path.getmtime(entry) for entry in params['source_uri']])
+                        t_epi = max([os.path.getmtime(entry)
+                                     for entry in params['source_uri']])
                 except Exception as e:
                     LOGGER.error(
                         "Could not read modification time of {0} ({1})".format(
@@ -141,13 +142,15 @@ class DataProcessor(object):
 
                 if skip is False:
                     try:
-                        update_rrd_file(rrd_fname, timeslot_sec, t_epi, t_product)
+                        update_rrd_file(rrd_fname, timeslot_sec, t_epi,
+                                        t_product)
 
                     except Exception as e:
                         if 'minimum one second step' in str(e):
                             LOGGER.info(
-                                "rrd file already contains timeslot. ({0})".format(e))
-                        else: 
+                                "rrd file already "
+                                "contains timeslot. ({0})".format(e))
+                        else:
                             LOGGER.error(
                                 "Could not update rrd file. ({0})".format(e))
         else:
@@ -170,11 +173,13 @@ class DataProcessor(object):
                     if not isinstance(vps, list):
                         vps = [vps]
                     for vp in vps:
-                        new_vals = parse(vp['parse_pattern'],msg.data[vp['msg_key']])
+                        new_vals = parse(vp['parse_pattern'],
+                                         msg.data[vp['msg_key']])
                         msg.data.update(new_vals)
-                    
-                    proc_func_params = ds_proc.get('processing_function_params', None);     
-                    
+
+                    proc_func_params = ds_proc.get(
+                        'processing_function_params', None)
+
                     module_name, function_name = \
                         ds_proc['processing_function'].split('|')
                     func = get_custom_function(module_name, function_name)
@@ -405,7 +410,11 @@ def get_custom_function(module_name, function_name):
     """Get the home made methods for building composites for a given satellite
     or instrument *name*.
     """
-    return getattr(__import__(module_name, globals(), locals(), [function_name]), function_name)
+    return getattr(__import__(module_name,
+                              globals(),
+                              locals(),
+                              [function_name]),
+                   function_name)
 
 
 class DataWriter(Thread):
@@ -485,6 +494,7 @@ class PostProcessor(object):
             if not managed:
                 self.config_watcher = \
                     ConfigWatcher(config['config_file'],
+                                  None,
                                   self.update_td_config_from_file)
                 self.config_watcher.start()
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from sphinx.builders.gettext import timestamp
-from _csv import Dialect
+
 
 # Copyright (c) 2017 Ernst Basler + Partner
 
@@ -26,7 +25,6 @@ import csv
 from dwd_extensions.qm.afd_alda_logs.repository import AldaLogEntry
 from trollsift.parser import parse as trollsift_parse
 from datetime import datetime
-from os.path import basename
 
 DATE_FORMAT = '%Y%m%d%H%M%S'
 TIME_ONLY_FORMAT = '%H:%M:%S'
@@ -53,7 +51,7 @@ class AldaLogReader(object):
                                     fieldnames=['timestamp',
                                                 'dest_host',
                                                 'filename'],
-                                    dialect=Dialect(skipinitialspace=True))
+                                    skipinitialspace=True)
             for row in reader:
                 try:
                     record = AldaLogEntry(
@@ -73,11 +71,11 @@ class AldaLogReader(object):
                     print row
                     print str(ex)
 
-    def _parse_datetime(self, row, field, format):
+    def _parse_datetime(self, row, field, date_format):
         val = row.get(field, None)
         if val in (None, ''):
             return None
-        return datetime.strptime(val, format)
+        return datetime.strptime(val, date_format)
 
     def _parse_slot_time(self, row, field):
         val = row.get(field, None)

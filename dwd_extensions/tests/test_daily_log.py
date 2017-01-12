@@ -30,9 +30,10 @@ from StringIO import StringIO
 from mock import patch
 from datetime import datetime
 
-from dwd_extensions.qm.emc_dailylogs.repository import Repository
-from dwd_extensions.qm.emc_dailylogs.reader import EumetcastDailylogReaderReader
-from dwd_extensions.qm.emc_dailylogs.service import DailyLogService
+from dwd_extensions.qm.emc_daily_logs.repository import Repository
+from dwd_extensions.qm.emc_daily_logs.reader \
+    import EumetcastDailylogReaderReader
+from dwd_extensions.qm.emc_daily_logs.service import DailyLogService
 
 
 class TestEumetcastDailylog(unittest.TestCase):
@@ -92,7 +93,7 @@ class TestEumetcastDailylogService(unittest.TestCase):
             '-DAILY_LOG-161204_01-201612050202-___short')
 
         self.service = DailyLogService(config=config)
-        self.service.import_dailylog_file(filename)
+        self.service.import_file(filename)
 
     def test_service_query_all_records(self):
         """Test service query for one timeslot with product

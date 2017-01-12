@@ -21,19 +21,13 @@
 
 '''This module defines a service for accessing imported AFD alda log data
 '''
-import yaml
-import os
-from datetime import datetime
 from dwd_extensions.qm.afd_alda_logs.repository import AldaLogEntry
 from dwd_extensions.qm.afd_alda_logs.repository import Repository
 from dwd_extensions.qm.afd_alda_logs.reader import AldaLogReader
+from dwd_extensions.qm.importer_base import BaseService, get_file_modtime
 
 
-def _get_file_modtime(filename):
-    return datetime.fromtimestamp(os.path.getmtime(filename))
-
-
-class AldaLogService(object):
+class AldaLogService(BaseService):
     '''
     Service providing information about current and historical satellite
     data availability
@@ -43,31 +37,17 @@ class AldaLogService(object):
         '''
         Constructor
         '''
-        if config is None:
-            if config_yml_filename is None:
-                raise "Either config or config_yml_filename "\
-                    "has to be specified!"
-            self.filename = config_yml_filename
-
-            with open(config_yml_filename, "r") as fid:
-                self.config = yaml.safe_load(fid)
-        else:
-            self.config = config
+        BaseService.__init__(self, config, config_yml_filename)
 
         self.repo = Repository(
             self.config['alda_log_db_filename'],
             prod2aldalog_records_pattern_map=self.config[
                 'prod2aldalog_records_pattern_map'])
 
-    def import_log_files(self, filenames):
-        filenames = sorted(filenames, reverse=True, key=_get_file_modtime)
-        for filename in filenames:
-            self.import_log_file(filename)
-
-    def import_log_file(self, filename):
+    def import_file(self, filename):
         max_date = self.get_oldest_allowed_date()
         if max_date is not None:
-            moddate = _get_file_modtime(filename)
+            moddate = get_file_modtime(filename)
             if moddate < max_date:
                 print "skipping {}, file too old ({} < {})".format(filename,
                                                                    moddate,
@@ -83,11 +63,3 @@ class AldaLogService(object):
         (records, res_ok) = self.repo.find_records_by_timeslot(timeslot,
                                                                product_name)
         return (records, res_ok)
-
-    def get_oldest_allowed_date(self):
-        days = self.config.get("max_age_days", 120)
-        return self.repo.get_oldest_allowed_date(days)
-
-    def delete_old_entries(self):
-        days = self.config.get("max_age_days", 120)
-        self.repo.delete_older_than(days)

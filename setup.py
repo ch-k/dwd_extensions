@@ -22,7 +22,7 @@ setup(name="dwd_extensions",
                 'dwd_extensions.qm',
                 'dwd_extensions.qm.sat_incidents',
                 'dwd_extensions.qm.afd_alda_logs',
-                'dwd_extensions.qm.emc_dailylogs'
+                'dwd_extensions.qm.emc_daily_logs'
                 ],
       scripts=['bin/configure.py',
                'bin/postprocessor.py',

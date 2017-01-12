@@ -118,8 +118,6 @@ class Repository(object):
             self.session.query(AldaLogEntry).filter(
                 AldaLogEntry.timestamp < max_date).delete()
 
-
-
     def record_count(self):
         ''' return count of accouncements in repository '''
         return self.session.query(

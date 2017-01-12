@@ -33,11 +33,11 @@ def print_info():
     """
     print textwrap.dedent("""\
     *********************************************************************
-    * Call this script to prepare the paths required in the config files 
+    * Call this script to prepare the paths required in the config files
     * of the pytroll package.
     *
     * It reads the key files coming with this package.
-    * It asks for a value to each key interactively 
+    * It asks for a value to each key interactively
     * (an empty value will leave the old one as it is).
     * It writes the key values to the key file.
     * It sets the values in the related config files.
@@ -54,7 +54,7 @@ def _get_config_file(configPath, keyFileName):
 
     If there exist a config file for the given key file
     in the specified path then the full path to the config file
-    will be returned; otherwise None.  
+    will be returned; otherwise None.
     """
     configBaseName = os.path.splitext(keyFileName)[0]
     for folder, subs, files in os.walk(configPath):
@@ -62,25 +62,32 @@ def _get_config_file(configPath, keyFileName):
             return os.path.join(folder, configBaseName)
     return None
 
+
 def _ask_user(section, name, value):
     """Returns user input if there was one; otherwise the given old value.
     """
     if sys.version_info[0] > 2:
-        userValue = input("".join(["Please enter [", section, "] -> ", name, " (", value, "): "]))
+        userValue = input("".join(["Please enter [", section, "] -> ",
+                                   name, " (", value, "): "]))
     else:
-        userValue = raw_input("".join(["Please enter [", section, "] -> ", name, " (", value, "): "]))
+        userValue = raw_input("".join(["Please enter [", section, "] -> ",
+                                       name, " (", value, "): "]))
     # missing user input means leave the old value as it is
     if userValue:
         return userValue
     else:
         return value
 
+
 def set_text_by_attribute(elem, attr_name, attr_value, new_text):
-    if elem.attrib.has_key(attr_name) and elem.attrib[attr_name] == attr_value:
+    if attr_name in elem.attrib and elem.attrib[attr_name] == attr_value:
         elem.text = new_text
-        print "setting value of node with %s = %s to %s" % (attr_name, attr_value, new_text)
+        print "setting value of node with %s = %s to %s" % (attr_name,
+                                                            attr_value,
+                                                            new_text)
     for ch in elem:
         set_text_by_attribute(ch, attr_name, attr_value, new_text)
+
 
 def set_xml_values(keyParser, configFileName, non_interactive):
     """Sets the key values of keyParser in given xml config file.
@@ -91,14 +98,15 @@ def set_xml_values(keyParser, configFileName, non_interactive):
     for section in keyParser.sections():
         items = keyParser.items(section)
         for name, value in items:
-            if non_interactive == True:
+            if non_interactive is True:
                 userValue = value
-            else:    
+            else:
                 userValue = _ask_user(section, name, value)
             keyParser.set(section, name, userValue)
-            set_text_by_attribute(treeElement, "id", name, userValue)   
+            set_text_by_attribute(treeElement, "id", name, userValue)
     tree.write(configFileName, encoding="utf-8")
-      
+
+
 def main():
     """Sets the key values in the corresponding config files.
     """
@@ -106,10 +114,10 @@ def main():
     parser.add_argument("-p", "--path", dest="config_path", type=str,
                         default='',
                         help="put in the path to config files")
-    parser.add_argument("-ni", "--non-interactive", dest="non_interactive", 
-                       action='store_const', const=True, default=False,
+    parser.add_argument("-ni", "--non-interactive", dest="non_interactive",
+                        action='store_const', const=True, default=False,
                         help="no user interaction, use default values")
-    
+
     if len(sys.argv) <= 1:
         print_info()
         sys.exit()
@@ -120,7 +128,7 @@ def main():
     if configPath == '':
         print_info()
         sys.exit()
-    
+
     keyPath = os.path.join(configPath, "keys")
 
     for folder, subs, files in os.walk(keyPath):
@@ -136,31 +144,40 @@ def main():
                 configFileName = _get_config_file(configPath, f)
                 hasFound = configFileName is not None
                 if not hasFound:
-                    print " ".join(["MISSING CONFIG FILE IN PATH", configPath, "FOR THE GIVEN KEY FILE", f])
-                    print "PLEASE CHECK THE MAPPING OF THE CONFIG FILES TO THEIR CORRESPONDING KEY FILES\n\n"
+                    print " ".join(["MISSING CONFIG FILE IN PATH",
+                                    configPath,
+                                    "FOR THE GIVEN KEY FILE", f])
+                    print "PLEASE CHECK THE MAPPING OF THE CONFIG FILES "\
+                        "TO THEIR CORRESPONDING KEY FILES\n\n"
                     continue
                 confParser = ConfigParser.ConfigParser()
                 confParser.read(configFileName)
                 configFile = open(configFileName, "w")
 
-                print "".join(["reading files [", keyFileName, ", ", configFileName, "]"])
+                print "".join(["reading files [", keyFileName, ", ",
+                               configFileName, "]"])
                 for section in keyParser.sections():
                     items = keyParser.items(section)
                     for name, value in items:
-                        if args.non_interactive == True:
+                        if args.non_interactive is True:
                             userValue = value
-                        else:    
+                        else:
                             userValue = _ask_user(section, name, value)
                         keyParser.set(section, name, userValue)
                         try:
                             confParser.set(section, name, userValue)
                         except ConfigParser.NoSectionError:
-                            print "".join(["\n", "MISSING SECTION [", section, "] IN THE CONFIG FILE ", configFileName])
-                            print "PLEASE CHECK THE MAPPING OF THE CONFIG FILES TO THEIR CORRESPONDING KEY FILES\n\n"
+                            print "".join(["\n", "MISSING SECTION [",
+                                           section, "] IN THE CONFIG FILE ",
+                                           configFileName])
+                            print "PLEASE CHECK THE MAPPING OF THE CONFIG "\
+                                "FILES TO THEIR CORRESPONDING KEY FILES\n\n"
             except ConfigParser.MissingSectionHeaderError:
                 if configFileName.endswith("xml"):
-                    print "".join(["reading files [", keyFileName, ", ", configFileName, "]"])
-                    set_xml_values(keyParser, configFileName, args.non_interactive)
+                    print "".join(["reading files [", keyFileName, ", ",
+                                   configFileName, "]"])
+                    set_xml_values(keyParser, configFileName,
+                                   args.non_interactive)
                     keyParser.write(keyFile)
                 hasFound = False
             except Exception, ex:
@@ -171,7 +188,7 @@ def main():
                     confParser.write(configFile)
                     configFile.close()
                 keyFile.close()
-                print "written and closed";
+                print "written and closed"
 
 
 if __name__ == "__main__":

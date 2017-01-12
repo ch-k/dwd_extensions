@@ -1,30 +1,35 @@
 #!/usr/bin/env python
-
-import os
-import stat
-import fnmatch
-import re
-from os.path import basename
-from os.path import splitext
-from tempfile import mkstemp
-from datetime import datetime
-from datetime import timedelta
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017
+#
+# Author(s):
+#
+#   Christian Kliche <chk@ebp.de>
+#
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Script for calculating monthly QM statistics for a single product
+"""
 from optparse import OptionParser
 from dwd_extensions.qm.stats import append_qm_stats_to_csv
 from dwd_extensions.qm.stats import calc_monthly_qm_stats
-
-
-def checkRequiredArguments(opts, parser):
-    missing_options = []
-    for option in parser.option_list:
-        if re.match(r'^\[REQUIRED\]', option.help) and eval('opts.' + option.dest) == None:
-            missing_options.extend(option._long_opts)
-    if len(missing_options) > 0:
-        parser.print_help()
-        parser.error('Missing REQUIRED parameters: ' + str(missing_options))
+from dwd_extensions.tools.script_utils import check_required_arguments
 
 
 def main():
+    """ main script function"""
 
     # override default formater to allow line breaks
     OptionParser.format_description = \
@@ -64,7 +69,8 @@ results to csv file.
                       type="string",
                       dest="product_name",
                       metavar="PRODUCT_NAME",
-                      help="[REQUIRED] Name of the product to calculate statistics for.")
+                      help="[REQUIRED] Name of the product to calculate "
+                      "statistics for.")
 
     parser.add_option("-s", "--product-rrd-steps",
                       action="store",
@@ -80,15 +86,16 @@ results to csv file.
                       type="int",
                       dest="year",
                       metavar="YEAR",
-                      help="[REQUIRED] Year of the time period to be analysed.")
+                      help="[REQUIRED] Year of the time period to be "
+                      "analysed.")
 
     parser.add_option("-m", "--month",
                       action="store",
                       type="int",
                       dest="month",
                       metavar="MONTH",
-                      help="[REQUIRED] Month of the time period to be analysed. i.e. "
-                      "'12' for december")
+                      help="[REQUIRED] Month of the time period to be "
+                      "analysed. i.e. '12' for december")
 
     parser.add_option("--allowed-process-time",
                       action="store",
@@ -104,7 +111,8 @@ results to csv file.
                       type="string",
                       dest="output_csv_file",
                       metavar="FILE",
-                      help="[REQUIRED] Path to csv file to append results. If this file "
+                      help="[REQUIRED] Path to csv file to append results. "
+                      "If this file "
                       "does not exist, a new file with header line "
                       "will be created.")
 
@@ -114,7 +122,7 @@ results to csv file.
         parser.print_help()
         exit()
 
-    checkRequiredArguments(options, parser)
+    check_required_arguments(options, parser)
 
     res = calc_monthly_qm_stats(options.rrddir,
                                 options.daily_log_config,

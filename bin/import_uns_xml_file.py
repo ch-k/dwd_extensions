@@ -19,11 +19,15 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+"""Script to import EUMETSAT user notification service files
+into cache database
+"""
 from optparse import OptionParser
 from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
 
-if __name__ == "__main__":
+
+def main():
+    """ main script function"""
     # override default formater to allow line breaks
     OptionParser.format_description = \
         lambda self, formatter: self.description
@@ -70,5 +74,9 @@ Importer for EUMETSAT User Notification Service XML files
         service.dump()
     else:
         print "starting import ..."
-        service.import_uns_file(options.uns_xml_file)
+        service.import_file(options.uns_xml_file)
         print "import finished"
+
+
+if __name__ == "__main__":
+    main()

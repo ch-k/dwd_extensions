@@ -7,15 +7,17 @@
 import sys
 import subprocess
 
-# 
-# python 2.6 is missing check_output 
+# python 2.6 is missing check_output
 # http://stackoverflow.com/a/13160748/3584189
-# 
-if "check_output" not in dir( subprocess ): # duck punch it in!
+#
+# duck punch it in!
+if "check_output" not in dir(subprocess):
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden.')
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+            raise ValueError('stdout argument not allowed, '
+                             'it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE,
+                                   *popenargs, **kwargs)
         output, unused_err = process.communicate()
         retcode = process.poll()
         if retcode:
@@ -25,6 +27,7 @@ if "check_output" not in dir( subprocess ): # duck punch it in!
             raise subprocess.CalledProcessError(retcode, cmd)
         return output
     subprocess.check_output = f
+
 
 def write_stdout(s):
     sys.stdout.write(s)

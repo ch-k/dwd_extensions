@@ -1,24 +1,41 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2016
+#
+# Author(s):
+#
+#   Christian Kliche <chk@ebp.de>
+#
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Script to create graphs out of rrd files produced by postprocessor
+"""
 
+from optparse import OptionParser
 import os
-import time
-import fnmatch
 from os.path import basename
 from os.path import splitext
-import colorsys
+import time
+import fnmatch
+# import colorsys
 import rrdtool as rrd
-from optparse import OptionParser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import rgb2hex
-
-
-def listfiles(d, pattern):
-    """return list of files in directory"""
-    return [os.path.join(d, o) for o in os.listdir(d)
-            if os.path.isfile(os.path.join(d, o)) and
-            fnmatch.fnmatch(o, pattern)]
+from dwd_extensions.tools.script_utils import listfiles
 
 
 def get_colors(num_colors):
@@ -28,7 +45,7 @@ def get_colors(num_colors):
 
     # cmap = plt.get_cmap('prism')
     cmap = plt.get_cmap('nipy_spectral')
-    return [rgb2hex(cmap(v)) for v in range(0, 255, 255/num_colors)]
+    return [rgb2hex(cmap(v)) for v in range(0, 255, 255 / num_colors)]
 
     """
     http://stackoverflow.com/a/17684501/3584189
@@ -45,10 +62,13 @@ def chunks(l, n):
     """ Yield successive n-sized chunks from l.
     """
     for i in xrange(0, len(l), n):
-        yield l[i:i+n]
+        yield l[i:i + n]
 
 
-def create_single_graph(path, imagename, first, last, arch, title, file_chunk, width):
+def create_single_graph(path, imagename, first, last, arch, title, file_chunk,
+                        width):
+    """create one (common) graph image for list of rrd files
+    """
     names = [splitext(basename(f))[0] for f in file_chunk]
     defs = []
     linestyles = []
@@ -72,7 +92,7 @@ def create_single_graph(path, imagename, first, last, arch, title, file_chunk, w
               # '--lower-limit', '0',
               'TEXTALIGN:left',
               '--font', 'LEGEND:7:monospace',
-              #'--x-grid', 'MINUTE:15:HOUR:1:HOUR:2:0:%a %H:%M %Z',
+              # '--x-grid', 'MINUTE:15:HOUR:1:HOUR:2:0:%a %H:%M %Z',
               '--x-grid', 'MINUTE:15:HOUR:1:HOUR:2:0:%d/%m %H:%M',
               # '--y-grid', '0.166667:6',
               '--alt-y-grid',
@@ -84,6 +104,8 @@ def create_single_graph(path, imagename, first, last, arch, title, file_chunk, w
 
 
 def create_graphs(imagedir, rrddir, last_hours, maxitems):
+    """create graph images for list of rrd files
+    """
     os.environ['TZ'] = 'UTC'
     time.tzset()
     files = listfiles(rrddir, '*.rrd')
@@ -102,8 +124,8 @@ def create_graphs(imagedir, rrddir, last_hours, maxitems):
     # "--start e-step*3 --end last"
     data = [rrd.fetch(f, 'MAX',
                       '--resolution', str(step),
-                      '--start', 'e-'+str(step*2),
-                      '--end', str(last_min-step))[2][0] for f in files]
+                      '--start', 'e-' + str(step * 2),
+                      '--end', str(last_min - step))[2][0] for f in files]
     data = zip([a for (a, _) in data], files)
     files = [f for (_, f) in sorted(data)]
     width = (last_hours // 24 + 1) * 1000
@@ -125,6 +147,8 @@ def create_graphs(imagedir, rrddir, last_hours, maxitems):
 
 
 def main():
+    """main script function"""
+
     # override default formater to allow line breaks
     OptionParser.format_description = \
         lambda self, formatter: self.description

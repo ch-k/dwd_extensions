@@ -88,9 +88,9 @@ class LayoutHandler(object):
         """Returns the resolution depending on the given area.
         """
         x_resolution = ((area.area_extent[2] -
-                         area.area_extent[0])/area.x_size)
+                         area.area_extent[0]) / area.x_size)
         y_resolution = ((area.area_extent[3] -
-                         area.area_extent[1])/area.y_size)
+                         area.area_extent[1]) / area.y_size)
         res = min(x_resolution, y_resolution)
 
         if res > 25000:

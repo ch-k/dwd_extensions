@@ -1,34 +1,40 @@
 #!/usr/bin/env python
-
-import os
-import stat
-import fnmatch
-import re
-import yaml
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017
+#
+# Author(s):
+#
+#   Christian Kliche <chk@ebp.de>
+#
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Script for calculating monthly QM statistics for a bunch of products
+"""
 import calendar
-from os.path import basename
-from os.path import splitext
-from tempfile import mkstemp
-from datetime import datetime
-from datetime import timedelta
 from optparse import OptionParser
+import yaml
+from datetime import datetime
 from dwd_extensions.qm.stats import append_qm_stats_to_csv
 from dwd_extensions.qm.stats import calc_monthly_qm_stats
-
-
-def checkRequiredArguments(opts, parser):
-    missing_options = []
-    for option in parser.option_list:
-        if re.match(r'^\[REQUIRED\]', option.help) and eval('opts.' + option.dest) == None:
-            missing_options.extend(option._long_opts)
-    if len(missing_options) > 0:
-        parser.print_help()
-        parser.error('Missing REQUIRED parameters: ' + str(missing_options))
+from dwd_extensions.tools.script_utils import check_required_arguments
 
 
 def add_months(sourcedate, months):
-    ''' http://stackoverflow.com/a/4131114
-    '''
+    """ add *months* to the *sourcedate"
+    http://stackoverflow.com/a/4131114
+    """
     month = sourcedate.month - 1 + months
     year = int(sourcedate.year + month / 12)
     month = month % 12 + 1
@@ -37,6 +43,7 @@ def add_months(sourcedate, months):
 
 
 def main():
+    """ main script function"""
 
     # override default formater to allow line breaks
     OptionParser.format_description = \
@@ -79,7 +86,7 @@ results to csv file.
         parser.print_help()
         exit()
 
-    checkRequiredArguments(options, parser)
+    check_required_arguments(options, parser)
 
     with open(options.config, "r") as fid:
         config = yaml.safe_load(fid)

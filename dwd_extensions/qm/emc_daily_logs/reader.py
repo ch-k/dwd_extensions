@@ -22,7 +22,8 @@
 '''This module defines a readers for satellite incidents and announcements
 '''
 import csv
-from dwd_extensions.qm.emc_dailylogs.repository import DailyLogEntry, RemarkEnum
+from dwd_extensions.qm.emc_daily_logs.repository import DailyLogEntry
+from dwd_extensions.qm.emc_daily_logs.repository import RemarkEnum
 from datetime import datetime
 from os.path import basename
 

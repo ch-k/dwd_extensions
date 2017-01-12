@@ -60,7 +60,7 @@ class TestAldaLogService(unittest.TestCase):
             'afd-alda-msg-epi-hermes')
 
         self.service = AldaLogService(config=config)
-        self.service.import_log_file(filename)
+        self.service.import_file(filename)
 
     def test_service_query_all_records(self):
         """Test service query for one timeslot with product

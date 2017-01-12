@@ -44,7 +44,8 @@ def to_unix_seconds(dt):
     if dt.tzinfo is None:
         return int((dt - datetime(1970, 1, 1)).total_seconds())
     else:
-        return int((dt - datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds())
+        return int((dt - datetime(1970, 1, 1,
+                                  tzinfo=pytz.utc)).total_seconds())
     # return int(dt.strftime("%s"))
 
 
@@ -108,24 +109,22 @@ def create_sample_rrd(filename, timeslots, rrd_steps):
         )
 
 
-
-
 def fetch(filename, timeslots):
     step = rrd.info(filename)['step']
     data = rrd.fetch(
         filename,
         'MAX',
-        #'--start', timeslots[0].strftime(FETCH_DATEFORMAT),
+        # '--start', timeslots[0].strftime(FETCH_DATEFORMAT),
         '--start', str(to_unix_seconds(timeslots[0]) - step),
         '--end', str(to_unix_seconds(timeslots[-1])))
-    
+
     # data shift by step size, so add one to match
     # the output of "rrdtool dump"
-    basetime = data[0][0] + step 
+    basetime = data[0][0] + step
     basetime_dt = datetime.fromtimestamp(basetime, tz=pytz.utc)
     dt_dict = {}
     for n, elem in enumerate(data[2]):
-        dt_dict[basetime_dt+timedelta(seconds=n*step)] = elem
-    
+        dt_dict[basetime_dt + timedelta(seconds=n * step)] = elem
+
     res = [(ts, dt_dict.get(ts, (None, None))) for ts in timeslots]
     return res

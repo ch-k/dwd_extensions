@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from fileinput import filename
 
 # Copyright (c) 2016 Ernst Basler + Partner
 
@@ -22,20 +21,14 @@ from fileinput import filename
 
 '''This module defines a readers for satellite incidents and announcements
 '''
-import yaml
-from datetime import datetime
-import os
-from dwd_extensions.qm.emc_dailylogs.repository import DailyLogEntry
-from dwd_extensions.qm.emc_dailylogs.repository import RemarkEnum
-from dwd_extensions.qm.emc_dailylogs.repository import Repository
-from dwd_extensions.qm.emc_dailylogs.reader import EumetcastDailylogReaderReader
+from dwd_extensions.qm.emc_daily_logs.repository import RemarkEnum
+from dwd_extensions.qm.emc_daily_logs.repository import Repository
+from dwd_extensions.qm.emc_daily_logs.reader \
+    import EumetcastDailylogReaderReader
+from dwd_extensions.qm.importer_base import BaseService, get_file_modtime
 
 
-def _get_file_modtime(filename):
-    return datetime.fromtimestamp(os.path.getmtime(filename))
-
-
-class DailyLogService(object):
+class DailyLogService(BaseService):
     '''
     Service providing information about current and historical satellite
     data availability
@@ -45,31 +38,17 @@ class DailyLogService(object):
         '''
         Constructor
         '''
-        if config is None:
-            if config_yml_filename is None:
-                raise "Either config or config_yml_filename "\
-                    "has to be specified!"
-            self.filename = config_yml_filename
-
-            with open(config_yml_filename, "r") as fid:
-                self.config = yaml.safe_load(fid)
-        else:
-            self.config = config
+        BaseService.__init__(self, config, config_yml_filename)
 
         self.repo = Repository(
             self.config['daily_log_db_filename'],
             prod2dailylog_records_pattern_map=self.config[
                 'prod2dailylog_records_pattern_map'])
 
-    def import_dailylog_files(self, filenames):
-        filenames = sorted(filenames, reverse=True, key=_get_file_modtime)
-        for filename in filenames:
-            self.import_dailylog_file(filename)
-
-    def import_dailylog_file(self, filename):
+    def import_file(self, filename):
         max_date = self.get_oldest_allowed_date()
         if max_date is not None:
-            moddate = _get_file_modtime(filename)
+            moddate = get_file_modtime(filename)
             if moddate < max_date:
                 print "skipping {}, file too old ({} < {})".format(filename,
                                                                    moddate,
@@ -81,6 +60,8 @@ class DailyLogService(object):
         self.delete_old_entries()
 
     def get_records_for_timeslot(self, timeslot, product_name):
+        ''' returns daily log records related to *timeslot* and *product_name*
+        '''
         records = self.repo.find_records_by_timeslot(timeslot, product_name)
         return records
 
@@ -110,11 +91,3 @@ class DailyLogService(object):
                }
         res['total_invalid'] = res['total'] - res['confirmed']
         return res
-
-    def delete_old_entries(self):
-        days = self.config.get("max_age_days", 120)
-        self.repo.delete_older_than(days)
-
-    def get_oldest_allowed_date(self):
-        days = self.config.get("max_age_days", 120)
-        return self.repo.get_oldest_allowed_date(days)

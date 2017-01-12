@@ -19,20 +19,15 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+"""Script to import AFD alda log files into cache database
+"""
 from optparse import OptionParser
 from dwd_extensions.qm.afd_alda_logs.service import AldaLogService
-from fnmatch import fnmatch
-import os
+from dwd_extensions.tools.script_utils import listfiles
 
 
-def listfiles(d, pattern):
-    """return list of files in directory"""
-    return [os.path.join(d, o) for o in os.listdir(d)
-            if os.path.isfile(os.path.join(d, o)) and
-            fnmatch(o, pattern)]
-
-if __name__ == "__main__":
+def main():
+    """ main script function"""
     # override default formater to allow line breaks
     OptionParser.format_description = \
         lambda self, formatter: self.description
@@ -89,7 +84,8 @@ Importer for AFD alda log files
     else:
         print "starting import ..."
         csv_files = listfiles(options.directory, options.file_pattern)
-        for csv_file in csv_files:
-            print "importing " + csv_file
-            service.import_log_file(csv_file)
+        service.import_files(csv_files)
         print "import finished"
+
+if __name__ == "__main__":
+    main()

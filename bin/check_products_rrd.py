@@ -1,17 +1,43 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017
+#
+# Author(s):
+#
+#   Christian Kliche <chk@ebp.de>
+#
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Script for generating nagios monitoring infos based on rrd files
+written by trollduction postprocessor
+"""
 
-import os
+from tempfile import mkstemp
+from optparse import OptionParser
 import stat
 import fnmatch
 from time import sleep
+import os
 from os.path import basename
 from os.path import splitext
-from tempfile import mkstemp
 from datetime import datetime
 from datetime import timedelta
-from optparse import OptionParser
-from dwd_extensions.qm.sat_incidents.repository import AnnouncementImpactEnum
 from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
+from dwd_extensions.tools.rrd_utils import to_unix_seconds
+from dwd_extensions.tools.script_utils import listfiles
+
 import rrdtool as rrd
 
 STATUS_OK = 0
@@ -20,18 +46,10 @@ STATUS_CRITICAL = 2
 STATUS_UNKNOWN = 3
 
 
-def listfiles(d, pattern):
-    """return list of files in directory"""
-    return [os.path.join(d, o) for o in os.listdir(d)
-            if os.path.isfile(os.path.join(d, o)) and
-            fnmatch.fnmatch(o, pattern)]
-
-
-def to_unix_seconds(dt):
-    return int(dt.strftime("%s"))
-
-
 def extract_prod_name(thefile):
+    """get product name from filename
+    it's basically filename without extension
+    """
     return splitext(basename(thefile))[0]
 
 
@@ -177,6 +195,7 @@ def read_result_and_exit(cache_file, max_cache_file_age_minutes):
 
 
 def main():
+    """main script function"""
 
     # override default formater to allow line breaks
     OptionParser.format_description = \
@@ -230,7 +249,8 @@ Results:
                       default=2.0,
                       dest="max_age_intervals",
                       metavar="INTERVALS",
-                      help="maximum allowed age of product files (number of intervals)"
+                      help="maximum allowed age of product files "
+                      "(number of intervals)"
                       ", the time slot added by the last update of "
                       "corresponding rrd file")
 
@@ -265,7 +285,7 @@ Results:
                       default=None,
                       dest="sat_availability_config",
                       metavar="FILE",
-                      help="path to configuration of "\
+                      help="path to configuration of "
                       "satellite availability service")
 
     try:
@@ -294,7 +314,8 @@ Results:
         additional_info = ""
         if len(old_prods_ok) > 0:
             additional_info = "\n(Following products missing but matching "\
-            "EUMETSAT UNS announcement found: {})".format(", ".join(old_prods_ok))
+                "EUMETSAT UNS announcement found: {})".format(
+                    ", ".join(old_prods_ok))
 
         if len(all_prods) == 0:
             write_result_and_exit(

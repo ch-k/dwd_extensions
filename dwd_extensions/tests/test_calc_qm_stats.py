@@ -30,7 +30,7 @@ import yaml
 from dwd_extensions.tools.rrd_utils import to_unix_seconds
 from dwd_extensions.tools.rrd_utils import create_sample_rrd
 
-from dwd_extensions.qm.emc_dailylogs.service import DailyLogService
+from dwd_extensions.qm.emc_daily_logs.service import DailyLogService
 from dwd_extensions.qm.afd_alda_logs.service import AldaLogService
 from dwd_extensions.qm.sat_incidents.service import SatDataAvailabilityService
 from dwd_extensions.qm.stats import calc_month_timeslots
@@ -77,7 +77,7 @@ class TestCalcQMStats(unittest.TestCase):
             config_yml_filename=self.dailylog_config_filename)
 
         # print "warning - import skipped"
-        service.import_dailylog_file(os.path.join(
+        service.import_file(os.path.join(
             self.testdatadir,
             'E-UNS_-MSG_0DEG-H_SEVIRI____-DAILY_LOG-161204_01'
             '-201612050202-___qm_stats_test'))
@@ -103,7 +103,7 @@ class TestCalcQMStats(unittest.TestCase):
             config_yml_filename=self.alda_log_config_filename)
 
         # print "warning - import skipped"
-        service.import_log_file(os.path.join(
+        service.import_file(os.path.join(
             self.testdatadir,
             'afd-alda-msg-epi-hermes_qm_stats_test'))
 

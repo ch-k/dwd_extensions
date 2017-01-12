@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from readline import add_history
 
 # Copyright (c) 2016 Ernst Basler + Partner
 
@@ -26,7 +25,7 @@ from datetime import datetime, timedelta
 import os
 import csv
 import pytz
-from dwd_extensions.qm.emc_dailylogs.service import DailyLogService
+from dwd_extensions.qm.emc_daily_logs.service import DailyLogService
 from dwd_extensions.qm.afd_alda_logs.service import AldaLogService
 from dwd_extensions.tools.rrd_utils import fetch as rrd_fetch
 
@@ -79,13 +78,13 @@ class QmStats:
     count_failed_pytroll = None
     mean_process_time_pytroll = None
     process_time_pytroll_exceeded = None
-    
+
     param_product_name = None
     param_period_year = None
     param_period_month = None
     param_allowed_process_time = None
     param_steps = None
-    
+
     def __repr__(self):
         return "<QmStats("\
             "count_timeslots='{}'"\
@@ -137,10 +136,10 @@ def calc_qm_stats(rrd_dir, dailylog_config_filename, aldalog_config_filename,
         product_name,
         aldalog_config_filename)
     failed_aldalog = [el[0] for el in availability_aldalog
-                       if el[1] is False]
+                      if el[1] is False]
     res.count_failed_afd = len(failed_aldalog)
     received_aldalog = [el[0] for el in availability_aldalog
-                         if el[1] is True]
+                        if el[1] is True]
     res.count_received_afd = len(received_aldalog)
 
     # AP6 Nr. 4a (abs)
@@ -156,7 +155,8 @@ def calc_qm_stats(rrd_dir, dailylog_config_filename, aldalog_config_filename,
     # AP6 Nr. 4b (rel)
     res.count_processed_pytroll = len(processed_pytroll)
     if res.count_received_afd:
-        res.count_processed_pytroll_rel_afd = float(res.count_processed_pytroll) / float(res.count_received_afd)
+        res.count_processed_pytroll_rel_afd = \
+            float(res.count_processed_pytroll) / float(res.count_received_afd)
 
     # AP6 Nr. 5
     if res.count_processed_pytroll > 0:
@@ -186,14 +186,14 @@ def calc_monthly_qm_stats(rrd_dir, dailylog_config_filename,
                         aldalog_config_filename,
                         product_name,
                         timeslots, allowed_process_time)
-    
+
     # add additional infos to be stored in csv file
     res.param_period_month = month
     res.param_period_year = year
     res.param_product_name = product_name
     res.param_allowed_process_time = allowed_process_time
     res.param_steps = product_rrd_steps
-    
+
     return res
 
 
@@ -213,7 +213,7 @@ def append_qm_stats_to_csv(qm_stats, csv_filename):
               'param_period_month',
               'param_allowed_process_time',
               'param_steps']
-    
+
     add_header = not os.path.isfile(csv_filename)
     with open(csv_filename, 'a') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fields, dialect="excel")
