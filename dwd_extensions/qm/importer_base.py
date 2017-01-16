@@ -25,6 +25,7 @@ from abc import ABCMeta, abstractmethod
 import yaml
 from datetime import datetime
 import os
+import shutil
 
 
 def get_file_modtime(filename):
@@ -55,10 +56,22 @@ class BaseService:
 
         self.repo = None
 
-    def import_files(self, filenames):
+    def import_files(self, filenames, move_to_directory=None):
         filenames = sorted(filenames, reverse=True, key=get_file_modtime)
         for filename in filenames:
             self.import_file(filename)
+            if move_to_directory:
+                if not os.path.exists(move_to_directory):
+                    os.makedirs(move_to_directory)
+                if os.path.isdir(move_to_directory):
+                    try:
+                        os.remove(os.path.join(move_to_directory,
+                                               os.path.basename(filename)))
+                    except OSError:
+                        pass
+                    shutil.move(filename, move_to_directory)
+                    print "{} moved to {}".format(filename,
+                                                  move_to_directory)
 
     @abstractmethod
     def import_file(self, filename):

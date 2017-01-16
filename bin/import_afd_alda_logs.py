@@ -65,6 +65,15 @@ Importer for AFD alda log files
         "alda log service")
 
     parser.add_option(
+        "-m", "--move-to-directory",
+        action="store",
+        type="string",
+        default=None,
+        dest="move_to_directory",
+        metavar="FILE",
+        help="move imported log files to this directory")
+
+    parser.add_option(
         "--dump",
         action="store_true",
         dest="dump",
@@ -84,7 +93,7 @@ Importer for AFD alda log files
     else:
         print "starting import ..."
         csv_files = listfiles(options.directory, options.file_pattern)
-        service.import_files(csv_files)
+        service.import_files(csv_files, options.move_to_directory)
         print "import finished"
 
 if __name__ == "__main__":
