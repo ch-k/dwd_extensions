@@ -110,6 +110,23 @@ class QmStats:
                 self.process_time_pytroll_exceeded)
 
 
+def _merge_data(rrd_data, other_rrd_file, timeslots):
+    other = dict(rrd_fetch(other_rrd_file, timeslots))
+    new_rrd_data = []
+    for el in rrd_data:
+        # search for same timeslot in other rrd file
+        t1 = el[1][0]
+        t2 = el[1][1]
+        other_el = other.get(el[0], None)
+        if other_el and other_el[0] is not None:
+            if t1 is None or t1 > other_el[0]:
+                t1 = other_el[0]
+        if other_el and other_el[1] is not None:
+            if t2 is None or t2 > other_el[1]:
+                t2 = other_el[1]
+        new_rrd_data.append((el[0], (t1, t2)))
+    return new_rrd_data
+
 def calc_qm_stats(rrd_dir, dailylog_config_filename, aldalog_config_filename,
                   product_name, timeslots,
                   allowed_process_time=None):
@@ -143,8 +160,26 @@ def calc_qm_stats(rrd_dir, dailylog_config_filename, aldalog_config_filename,
     res.count_received_afd = len(received_aldalog)
 
     # AP6 Nr. 4a (abs)
-    rrd_filename = os.path.join(rrd_dir, product_name + '.rrd')
-    availability_pytroll = rrd_fetch(rrd_filename, timeslots)
+    if isinstance(rrd_dir, (list, tuple)):
+        rrd_filename = os.path.join(rrd_dir[0], product_name + '.rrd')
+        if not os.path.exists(rrd_filename):
+            print "{} does not exists!".format(rrd_filename)
+            availability_pytroll = [(el, (None, None)) for el in timeslots]
+        else:
+            availability_pytroll = rrd_fetch(rrd_filename, timeslots)
+
+        for i in range(1, len(rrd_dir)):
+            rrd_filename = os.path.join(rrd_dir[i], product_name + '.rrd')
+            if not os.path.exists(rrd_filename):
+                print "{} does not exists!".format(rrd_filename)
+            else:
+                availability_pytroll = \
+                    _merge_data(availability_pytroll, rrd_filename, timeslots)
+
+    else:
+        rrd_filename = os.path.join(rrd_dir, product_name + '.rrd')
+        availability_pytroll = rrd_fetch(rrd_filename, timeslots)
+
     failed_pytroll = [el[0] for el in availability_pytroll
                       if el[1][0] is None]
     res.count_failed_pytroll = len(failed_pytroll)

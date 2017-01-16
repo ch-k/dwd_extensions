@@ -52,9 +52,23 @@ class TestCalcQMStats(unittest.TestCase):
         self._prepare_dailylog()
         self._prepare_aldalog()
 
+        self.rrd_dir = os.path.join(self.tempdir, "rrd_dir1")
+        os.makedirs(self.rrd_dir)
+
+        self.rrd_dir_2 = os.path.join(self.tempdir, "rrd_dir2")
+        os.makedirs(self.rrd_dir_2)
+
+        self.rrd_dir_3 = os.path.join(self.tempdir, "rrd_dir3")
+        os.makedirs(self.rrd_dir_3)
+
         self.product_name = 'METEOSAT_EUROPA_GESAMT_IR108_xxx'
-        self.rrd_filename = os.path.join(self.tempdir,
+
+        self.rrd_filename = os.path.join(self.rrd_dir,
                                          self.product_name + '.rrd')
+        self.rrd_filename_2 = os.path.join(self.rrd_dir_2,
+                                           self.product_name + '.rrd')
+        self.rrd_filename_3 = os.path.join(self.rrd_dir_3,
+                                           self.product_name + '.rrd')
 
     def _prepare_dailylog(self):
         # load yml config as provided with test
@@ -128,7 +142,7 @@ class TestCalcQMStats(unittest.TestCase):
         # 04:00 marked as "not_send"
         # 04:15 marked as "sent_not_confirmed"
 
-        res = calc_qm_stats(self.tempdir,
+        res = calc_qm_stats(self.rrd_dir,
                             self.dailylog_config_filename,
                             self.alda_log_config_filename,
                             self.product_name,
@@ -191,7 +205,7 @@ class TestCalcQMStats(unittest.TestCase):
         # 04:00 marked as "not_send"
         # 04:15 marked as "sent_not_confirmed"
 
-        res = calc_monthly_qm_stats(self.tempdir,
+        res = calc_monthly_qm_stats(self.rrd_dir,
                                     self.dailylog_config_filename,
                                     self.alda_log_config_filename,
                                     self.product_name,
@@ -205,6 +219,65 @@ class TestCalcQMStats(unittest.TestCase):
         self.assertEqual(res.count_processed_pytroll, 86,
                          'processed by pytroll')
         self.assertEqual(res.count_failed_pytroll, 2890,
+                         'not processed by pytroll')
+        self.assertEqual(res.count_failed_dailylog, 2937,
+                         'not marked as sent by EUMETCAST')
+        self.assertEqual(res.count_received_dailylog, 39,
+                         'marked as sent by EUMETCAST')
+        self.assertEqual(res.count_failed_afd, 2933,
+                         'not transferred by AFD to pytroll server')
+        self.assertEqual(res.count_received_afd, 43,
+                         'transferred by AFD to pytroll server')
+
+    def test_calc_monthly_qm_three_rrddirs(self):
+        """Test calculation for a month using three rrd directories"""
+
+        # AP6 Nr. 1
+        rrd_steps = 900
+        month = 12
+        year = 2016
+
+        timeslots = calc_month_timeslots(year, month, rrd_steps)
+
+        # take only 4th december because we have sample data for that day
+        timeslots = [t for t in timeslots if t.day == 4]
+
+        # create sample rrd file with gaps from 4:00 to 4:45 and 8:00 to 8:45
+        timeslots_with_gap = [t for t in timeslots if t.hour not in (4, 8)]
+        create_sample_rrd(self.rrd_filename,
+                          timeslots_with_gap,
+                          rrd_steps)
+
+        # create sample rrd file with gaps from 8:00 to 8:45
+        timeslots_with_gap = [t for t in timeslots if t.hour != 8]
+        create_sample_rrd(self.rrd_filename_2,
+                          timeslots_with_gap,
+                          rrd_steps)
+
+        # create sample rrd file with gaps from 9:00 to 9:45
+        timeslots_with_gap = [t for t in timeslots if t.hour != 9]
+        create_sample_rrd(self.rrd_filename_3,
+                          timeslots_with_gap,
+                          rrd_steps)
+
+        # dailylog contains entries between 00:00 and 10:00
+        # 04:00 marked as "not_send"
+        # 04:15 marked as "sent_not_confirmed"
+
+        res = calc_monthly_qm_stats([self.rrd_dir, self.rrd_dir_2],
+                                    self.dailylog_config_filename,
+                                    self.alda_log_config_filename,
+                                    self.product_name,
+                                    rrd_steps, year, month,
+                                    allowed_process_time=300)
+        print res
+        #append_qm_stats_to_csv(res, '/home/pytroll/pytroll_qm_stats.csv')
+
+        self.assertEqual(res.count_timeslots, 2976,
+                         'astronomical timeslots')
+        self.assertEqual(res.count_processed_pytroll, 91,
+                         'processed by pytroll')
+        self.assertEqual(res.count_failed_pytroll, 2885,
                          'not processed by pytroll')
         self.assertEqual(res.count_failed_dailylog, 2937,
                          'not marked as sent by EUMETCAST')

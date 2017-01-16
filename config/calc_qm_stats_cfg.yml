@@ -1,6 +1,8 @@
 daily_log_config: "%CONFIGDIR%/daily_log_cfg.yml"
 alda_log_config: "%CONFIGDIR%/alda_log_cfg.yml"
 rrd_directory: "%LOGDIR%/rrd"
+#rrd_directory: ["%LOGDIR%/rrd", "PATH_TO_RRD_FILES_OF_BACKUP_SYSTEM"]
+
 products:
     - {name: "METEOSAT_EUROPA_GESAMT_IR108_nqeuro3km_xx.tif", steps: 900, output_csv_file: "%LOGDIR%/qm_stats_ir108.csv", allowed_process_time: }
     - {name: "WarnappbildRGBA_pcwarnapp1500m_xx.tif", steps: 900, output_csv_file: "%LOGDIR%/qm_stats_warnapp.csv", allowed_process_time: }
