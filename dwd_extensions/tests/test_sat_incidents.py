@@ -214,7 +214,7 @@ class TestEumetsatUNS(unittest.TestCase):
         res = service.get_data_availability_error(
             datetime(2016, 10, 4, 16, 31),
             'FernsehbildRGBA_nqeuro3km_xx_contrast_optim.tif.rrd')
-        self.assertEqual(res, AnnouncementImpactEnum.DATA_UNAVAILABLE)
+        self.assertEqual(res.impact, AnnouncementImpactEnum.DATA_UNAVAILABLE)
 
     def test_service_query_with_prod_pattern(self):
         """Test service query for one timeslot with product pattern
@@ -231,7 +231,7 @@ class TestEumetsatUNS(unittest.TestCase):
         res = service.get_data_availability_error(
             datetime(2016, 10, 4, 16, 31),
             'FernsehbildRGBA_nqeuro3km_xx_contrast_optim.tif.rrd')
-        self.assertEqual(res, AnnouncementImpactEnum.DATA_UNAVAILABLE)
+        self.assertEqual(res.impact, AnnouncementImpactEnum.DATA_UNAVAILABLE)
 
     def test_service_query_with_prod_pattern_no_sat_match(self):
         """Test service query for one timeslot with product pattern

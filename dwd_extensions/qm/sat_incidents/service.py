@@ -53,7 +53,7 @@ class SatDataAvailabilityService(BaseService):
     def get_worst_announcement(self, timeslot, product_name):
         anns = self.repo.find_announcments_by_timeslot(timeslot, product_name)
         anns = sorted(anns, key=self._ann_prio)
-        if len(anns) > 0:
+        if len(anns) > 0 and self._ann_prio(anns[0]) <= 3:
             return anns[0]
         return None
 
@@ -71,5 +71,5 @@ class SatDataAvailabilityService(BaseService):
     def get_data_availability_error(self, timeslot, product_name):
         ann = self.get_worst_announcement(timeslot, product_name)
         if ann:
-            return ann.impact
+            return ann
         return None

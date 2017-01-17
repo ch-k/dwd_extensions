@@ -99,7 +99,11 @@ def check_rrds(rrddir, max_age_minutes, max_age_intervals=2.0,
                 res = sat_avail_service.get_data_availability_error(reftime_dt,
                                                                     name)
                 if res:
-                    print "{} {} {}".format(res, reftime_dt, name)
+                    print "EUMETSAT UNS: Nr {}, Impact {}, " \
+                        "Reference Time {}, Product {}".format(res.number,
+                                                               res.impact,
+                                                               reftime_dt,
+                                                               name)
                     old_prods_ok.append(name)
                 else:
                     old_prods.append(name)
